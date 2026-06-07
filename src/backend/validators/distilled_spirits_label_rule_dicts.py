@@ -20,7 +20,11 @@ not emitted as pass/fail/unknown.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, TypeAlias, TypedDict
+from typing import Any, TypedDict
+try:
+    from typing import TypeAlias
+except ImportError:
+    TypeAlias = Any
 
 from src.backend.extraction import distilled_spirits_label_dataclasses as ds
 

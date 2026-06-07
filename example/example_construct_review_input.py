@@ -38,7 +38,7 @@ OCR_BLOCKS = [
     "40% ALC BY VOL (80 PROOF)",
     "750 mL",
     "IMPORTED BY MONTEBELLO BRANDS, INC. BALTIMORE, MD",
-    "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+    "GOVERNMENT WARkjhNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
 ]
 
 # Deterministic-only mode:

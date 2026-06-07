@@ -44,6 +44,7 @@ except ImportError:
 from typing import Any, Mapping, Protocol, Sequence, TypeVar, Union, get_args, get_origin, get_type_hints
 
 from src.backend.extraction import distilled_spirits_label_dataclasses as ds
+from src.backend.validators.distilled_spirits_label_rule_dicts import build_rule_result_dicts
 
 
 T = TypeVar("T")
@@ -1833,6 +1834,19 @@ def populate_precomputed_checks(review: ds.DistilledSpiritsLabelReviewInput) -> 
         reason="Unknown means exact text may be present but text-only OCR cannot prove bold/non-bold/continuous paragraph style.",
         rule_ids=["DS-LABEL-190", "DS-LABEL-191", "DS-LABEL-192", "DS-LABEL-193", "DS-LABEL-194"],
     )
+
+    rule_results = build_rule_result_dicts(review)
+    for check in checks.values():
+        for rule_id in check.rule_ids:
+            if rule_id in rule_results.rule_passes:
+                check.reason = rule_results.rule_passes[rule_id]
+                break
+            elif rule_id in rule_results.rule_fails:
+                check.reason = rule_results.rule_fails[rule_id]
+                break
+            elif rule_id in rule_results.rule_unknown:
+                check.reason = rule_results.rule_unknown[rule_id]["reason"]
+                break
 
     review.checks.update(checks)
 
