@@ -1,16 +1,21 @@
 import io
 from fastapi import FastAPI, UploadFile, Form, File, Depends, HTTPException
+from fastapi.responses import Response, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+import redis
 from typing import List, Optional
 
+from src.backend.config import settings
 from src.backend.database import engine, Base, get_db
 from src.backend.models import Job
-from src.backend.services.s3 import upload_job_input, upload_job_prompt, get_job_data
+from src.backend.services.s3 import upload_job_input, upload_job_prompt, get_job_data, get_presigned_image_url
 from src.backend.worker import execute_job_task
 
 app = FastAPI(title="Job Processing API")
+
+redis_client = redis.Redis.from_url(settings.REDIS_URL)
 
 # Setup CORS
 app.add_middleware(
@@ -73,9 +78,10 @@ async def submit_job(
     db.commit()
     db.refresh(job)
 
-    # Save to S3
+    # Save to S3 and cache in Redis (1 hour TTL)
     file_bytes = await file.read()
-    file_key = upload_job_input(str(job.id), file_bytes, file.filename)
+    redis_client.setex(f"image:{job.id}", 3600, file_bytes)
+    file_key = upload_job_input(str(job.id), file_bytes, "image.png")
 
     # Save prompt to S3 for history
     upload_job_prompt(job.id, prompt)
@@ -108,3 +114,19 @@ def get_job_details(job_id: str, db: Session = Depends(get_db)):
         "prompt": data.get("prompt"),
         "output": data.get("output")
     }
+
+@app.get("/jobs/{job_id}/image")
+def get_job_image(job_id: str, db: Session = Depends(get_db)):
+    """
+    Returns the raw image from Redis if cached, otherwise redirects to the S3 presigned URL.
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    cached_img = redis_client.get(f"image:{job_id}")
+    if cached_img:
+        return Response(content=cached_img, media_type="image/png")
+        
+    url = get_presigned_image_url(job_id, "image.png")
+    return RedirectResponse(url=url)

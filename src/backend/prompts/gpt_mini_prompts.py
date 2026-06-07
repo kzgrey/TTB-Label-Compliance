@@ -261,6 +261,7 @@ Output exactly:
     "PercentageAndName": null,
     "ContainerEmbossedText": null,
     "GovernmentWarningText": null,
+    "GovernmentWarningHeaderText": null,
     "ContainerOrLabelCoding": null
   },
   "Sources": {
@@ -279,6 +280,7 @@ Output exactly:
     "PercentageAndName": [],
     "ContainerEmbossedText": [],
     "GovernmentWarningText": [],
+    "GovernmentWarningHeaderText": [],
     "ContainerOrLabelCoding": []
   }
 }
@@ -292,7 +294,7 @@ The Label[field] value must equal its Sources[field].exactText values joined wit
 
 Field meanings:
 - BrandName: brand name.
-- ClassTypeDesignation: class/type/statement of identity.
+- ClassTypeDesignation: Distilled Spirits, Beer, Wine, Other
 - ABV: alcohol-content statement.
 - NetContents: net-contents statement.
 - BottlerProducerNameAddr: bottler, producer, brewer, distiller, importer, or responsible party name/address.
@@ -306,6 +308,7 @@ Field meanings:
 - PercentageAndName: percentage/name listing for blended components.
 - ContainerEmbossedText: embossed, blown, branded, molded, etched, or container-formed text.
 - GovernmentWarningText: complete government warning statement.
+- GovernmentWarningHeaderText: exact text of the government warning header (e.g. 'GOVERNMENT WARNING:').
 - ContainerOrLabelCoding: printed/stamped/coded lot, batch, date, or production marking.
 
 Selection rules:

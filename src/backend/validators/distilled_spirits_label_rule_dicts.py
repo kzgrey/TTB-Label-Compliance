@@ -1198,25 +1198,19 @@ def _evaluate_government_warning_rules(b: _RuleDictBuilder, review: ds.Distilled
         "DS-LABEL-191",
         warning.exact_required_text_present,
         pass_reason="Government warning contains the exact required text.",
-        fail_reason="Government warning is present or expected, but the exact required text was not resolved as present.",
+        fail_reason="Missing government warning",
         unknown_reason="OCR/LLM output did not resolve whether the government warning text is exact.",
         hard_failure=True,
     )
 
-    if warning.header_is_exact_all_caps is False:
-        b.fail("DS-LABEL-192", "Government warning header is not the exact all-caps GOVERNMENT WARNING header.")
-    elif warning.header_is_exact_all_caps is True and warning.header_is_bold is True:
-        b.pass_("DS-LABEL-192", "Government warning header is exact/all-caps and boldness was resolved as present.")
-    elif warning.header_is_exact_all_caps is True and warning.header_is_bold is False:
-        b.fail("DS-LABEL-192", "Government warning header is exact/all-caps but boldness was resolved as absent.")
-    elif warning.header_is_exact_all_caps is True:
-        b.unknown(
-            "DS-LABEL-192",
-            "Government warning header is exact/all-caps, but OCR text blocks do not prove whether the header is bold.",
-            hard_failure=False,
-        )
-    else:
-        b.unknown("DS-LABEL-192", "OCR/LLM output did not resolve whether the government warning header is exact/all-caps and bold.", hard_failure=True)
+    b.bool_rule(
+        "DS-LABEL-192",
+        warning.header_is_exact_all_caps,
+        pass_reason="Government warning header is precisely 'GOVERNMENT WARNING:'.",
+        fail_reason="Government warning header is missing or not precisely 'GOVERNMENT WARNING:'.",
+        unknown_reason="OCR/LLM output did not resolve whether the government warning header is exact.",
+        hard_failure=True,
+    )
 
     b.bool_rule(
         "DS-LABEL-193",

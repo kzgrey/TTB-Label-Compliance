@@ -107,3 +107,21 @@ def get_job_data(job_id: str) -> dict:
         
     return result
 
+def get_presigned_image_url(job_id: str, filename: str = "image.png") -> str:
+    s3 = get_s3_client()
+    bucket, prefix = _get_bucket_and_prefix()
+    key = f"{prefix}/{job_id}/input/{filename}" if prefix else f"{job_id}/input/{filename}"
+    
+    try:
+        url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': bucket,
+                'Key': key
+            },
+            ExpiresIn=3600
+        )
+        return url
+    except Exception as e:
+        logger.error(f"Failed to generate presigned URL for {key}: {e}", exc_info=True)
+        raise

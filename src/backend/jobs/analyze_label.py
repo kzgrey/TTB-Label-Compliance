@@ -51,7 +51,8 @@ class AnalyzeLabelJob(BaseJob):
         self.logger.info(f"LLM Response:\n{llm_text}")
 
         import json
-        from src.backend.extraction.distilled_spirits_label_construction import construct_review_input, dataclass_to_dict
+        from src.backend.extraction.distilled_spirits_label_construction import construct_review_input, dataclass_to_dict, contains_normalized_text
+        from src.backend.extraction.distilled_spirits_label_dataclasses import ExtractedText, GOVERNMENT_WARNING_FULL_TEXT
         from src.backend.validators.distilled_spirits_label_rule_dicts import build_rule_result_dicts
 
         try:
@@ -65,6 +66,22 @@ class AnalyzeLabelJob(BaseJob):
                 application_detail_text=self.application_detail_text,
                 ocr_text_blocks=normalized_blocks,
             )
+            
+            # Use explicit LLM extraction for government warnings
+            warning_label = result.review_input.label.government_warning
+            gov_header = label_dict.get("GovernmentWarningHeaderText")
+            gov_body = label_dict.get("GovernmentWarningText")
+            
+            if gov_header is not None and isinstance(gov_header, str):
+                warning_label.header_text = ExtractedText(text=gov_header, normalized_text=gov_header)
+                warning_label.header_is_exact_all_caps = (gov_header.strip() == "GOVERNMENT WARNING:")
+                
+            if gov_body is not None and isinstance(gov_body, str):
+                warning_label.full_text = ExtractedText(text=gov_body, normalized_text=gov_body)
+                warning_label.exact_required_text_present = contains_normalized_text(
+                    gov_body, GOVERNMENT_WARNING_FULL_TEXT, case_sensitive=True
+                )
+
             rule_dicts = build_rule_result_dicts(result.review_input)
             
             rules_passed = {k: dataclass_to_dict(v) for k, v in rule_dicts.rule_passes.items()}
