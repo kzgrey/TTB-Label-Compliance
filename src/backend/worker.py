@@ -98,3 +98,15 @@ def start_job_pipeline(job_id: str, file_key: str, prompt: str):
         task_llm.s(job_id, file_key, prompt)
     ]
     chord(header)(callback)
+
+@celery_app.task
+def execute_job_task(job_type: str, job_id: str, *args, **kwargs):
+    """
+    Celery task wrapper to execute standard Python class jobs.
+    """
+    if job_type == "AnalyzeLabelJob":
+        from src.backend.jobs.analyze_label import AnalyzeLabelJob
+        job = AnalyzeLabelJob(job_id)
+        return job.run(*args, **kwargs)
+    else:
+        raise ValueError(f"Unknown job type: {job_type}")
