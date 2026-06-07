@@ -6,10 +6,10 @@ Run from the same directory as:
 
 import sys
 import os
-# Add the project root to sys.path to allow absolute imports from src
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/backend/extraction')))
 
-from src.backend.extraction.distilled_spirits_label_construction import construct_review_input, dataclass_to_dict, dump_review_input_json
+from distilled_spirits_label_construction import construct_review_input, dataclass_to_dict, dump_review_input_json
 
 APPLICATION_DETAIL_TEXT = """
 TTB ID: Open help for the TTB ID field in a new window 13221001000316
@@ -38,7 +38,7 @@ OCR_BLOCKS = [
     "40% ALC BY VOL (80 PROOF)",
     "750 mL",
     "IMPORTED BY MONTEBELLO BRANDS, INC. BALTIMORE, MD",
-    "GOVERNMENT WARNING: (1) Accordindfdsg to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+    "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
 ]
 
 # Deterministic-only mode:

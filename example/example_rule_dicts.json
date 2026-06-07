@@ -1,0 +1,122 @@
+{
+  "rule_fails": {},
+  "rule_passes": {
+    "DS-LABEL-001": "Brand name was extracted as 'SAO PAULO' and matches application brand 'SAO PAULO'.",
+    "DS-LABEL-002": "Application has a marketed brand name; the responsible-party fallback brand rule is not triggered.",
+    "DS-LABEL-010": "Class/type designation was extracted as 'RUM'.",
+    "DS-LABEL-011": "Extracted class/type 'RUM' matches application class/type 'OTHER RUM GOLD USB'.",
+    "DS-LABEL-019": "Application does not identify the product as imitation distilled spirits; rule is not triggered.",
+    "DS-LABEL-020": "Application does not identify the product as a recognized cocktail; rule is not triggered.",
+    "DS-LABEL-021": "Application does not identify the product as a flavored distilled spirit; rule is not triggered.",
+    "DS-LABEL-022": "Application does not identify a wine addition to flavored gin, rum, vodka, or whisky; rule is not triggered.",
+    "DS-LABEL-023": "Application does not identify a wine addition to flavored brandy; rule is not triggered.",
+    "DS-LABEL-024": "Application does not identify a Cr\u00e8me de product; rule is not triggered.",
+    "DS-LABEL-025": "Application does not identify a foreign-produced whisky requiring this qualifier; rule is not triggered.",
+    "DS-LABEL-026": "Application does not identify a domestic/imported whisky blend; rule is not triggered.",
+    "DS-LABEL-028": "Application does not identify compounded gin; rule is not triggered.",
+    "DS-LABEL-029": "Application does not identify a brandy product; rule is not triggered.",
+    "DS-LABEL-030": "Application does not identify a non-grape brandy; rule is not triggered.",
+    "DS-LABEL-031": "Application does not identify a blend of multiple brandy types; rule is not triggered.",
+    "DS-LABEL-032": "Application does not identify a fruit brandy derived from two or more fruits; rule is not triggered.",
+    "DS-LABEL-034": "Application does not identify a non-Italian Sambuca use; rule is not triggered.",
+    "DS-LABEL-035": "Application does not identify a non-German Goldwasser use; rule is not triggered.",
+    "DS-LABEL-036": "Application does not identify a low-sugar Arak/Arack/Raki use; rule is not triggered.",
+    "DS-LABEL-037": "No minimum bottled ABV requirement was identified for the application class/type.",
+    "DS-LABEL-038": "No required production country/region was identified for the application class/type.",
+    "DS-LABEL-040": "Application is imported; domestic responsible-party rule is not triggered.",
+    "DS-LABEL-041": "Application is imported; domestic explanatory-phrase rule is not triggered.",
+    "DS-LABEL-042": "Application is imported; domestic basic-permit name rule is not triggered.",
+    "DS-LABEL-043": "Application is imported; domestic address rule is not triggered.",
+    "DS-LABEL-044": "Application is imported; domestic principal-place-of-business marking rule is not triggered.",
+    "DS-LABEL-050": "Imported-before-importation importer/sole-agent name/address statement was extracted.",
+    "DS-LABEL-051": "Extracted imported-before-importation responsible-party phrase is appropriate: 'IMPORTED BY'.",
+    "DS-LABEL-052": "Application is not marked as imported after importation; imported-after-importation rule is not triggered.",
+    "DS-LABEL-053": "Application is not marked as bottled/packed/filled in the U.S. after importation; U.S. bottling phrase rule is not triggered.",
+    "DS-LABEL-054": "Extracted responsible-party statement contains required city/state address Baltimore, MD.",
+    "DS-LABEL-060": "Country-of-origin statement was extracted as 'PRODUCE OF BRAZIL'.",
+    "DS-LABEL-061": "Extracted country of origin matches application origin 'Brazil'.",
+    "DS-LABEL-070": "Net contents were extracted as 750 mL.",
+    "DS-LABEL-072": "Extracted net contents 750 mL are a permitted metric standard of fill for the inferred container type.",
+    "DS-LABEL-073": "Non-can net contents 750 mL are in the permitted non-can standards-of-fill list.",
+    "DS-LABEL-074": "Container is not marked as a can, so the can standards-of-fill list is not triggered.",
+    "DS-LABEL-080": "Alcohol content was extracted as 40% ABV.",
+    "DS-LABEL-081": "Alcohol-content statement uses an accepted percent-alcohol-by-volume form: '40% ALC BY VOL'.",
+    "DS-LABEL-082": "Application does not indicate solid material; BOTTLED AT ABV wording is not required.",
+    "DS-LABEL-084": "No solids-over-600 mg/100 mL trigger was identified.",
+    "DS-LABEL-085": "Container is not identified as 50 mL or 100 mL.",
+    "DS-LABEL-088": "Proof value 80 is set off or otherwise distinguished from the ABV statement.",
+    "DS-LABEL-106": "Application does not indicate coloring/flavoring/blending materials that change class/type; rule is not triggered.",
+    "DS-LABEL-110": "Application does not indicate non-exempt whisky/brandy treatment with wood outside oak-container contact; disclosure is not required.",
+    "DS-LABEL-111": "Wood-treatment disclosure scope is not triggered by the application facts.",
+    "DS-LABEL-120": "Application does not indicate FD&C Yellow #5; disclosure is not required.",
+    "DS-LABEL-130": "Application does not indicate saccharin; disclosure is not required.",
+    "DS-LABEL-150": "Application is not in commodity-statement Group 1; rule is not triggered.",
+    "DS-LABEL-151": "Application is not in commodity-statement Group 1; membership rule is not triggered.",
+    "DS-LABEL-152": "Application is not in commodity-statement Group 1; format rule is not triggered.",
+    "DS-LABEL-153": "Application is not in commodity-statement Group 2; rule is not triggered.",
+    "DS-LABEL-154": "Application is not in commodity-statement Group 2; membership rule is not triggered.",
+    "DS-LABEL-155": "Application is not in commodity-statement Group 2; format rule is not triggered.",
+    "DS-LABEL-160": "Product is not whisky aged less than 4 years; age statement is not required by this rule.",
+    "DS-LABEL-161": "Product is not grape lees brandy aged less than 2 years; age statement is not required by this rule.",
+    "DS-LABEL-162": "Product is not grape pomace/marc brandy aged less than 2 years; age statement is not required by this rule.",
+    "DS-LABEL-163": "No miscellaneous age reference/representation was resolved on the label; age statement is not required by this rule.",
+    "DS-LABEL-164": "No distillation date was resolved on the label; age statement is not required by this rule.",
+    "DS-LABEL-166": "No age statement trigger was resolved; standard age-statement format rule is not triggered.",
+    "DS-LABEL-168": "Application does not identify U.S. whisky stored in reused cooperage; rule is not triggered.",
+    "DS-LABEL-169": "Application does not identify whisky containing neutral spirits; rule is not triggered.",
+    "DS-LABEL-171": "Application does not identify whisky containing neutral spirits; rule is not triggered.",
+    "DS-LABEL-172": "No age statement/reference trigger was resolved; age-overstatement rule is not triggered.",
+    "DS-LABEL-180": "Application does not identify a covered U.S.-produced whisky type requiring state-of-distillation review.",
+    "DS-LABEL-181": "Application does not identify U.S.-produced whisky; covered-type list is not triggered.",
+    "DS-LABEL-183": "Application does not identify a covered U.S.-produced whisky type; misleading-state disclosure rule is not triggered.",
+    "DS-LABEL-190": "Government warning text/header was extracted from the OCR text blocks.",
+    "DS-LABEL-191": "Government warning contains the exact required text.",
+    "DS-LABEL-194": "Government warning appears as a continuous paragraph in the OCR text."
+  },
+  "rule_unknown": {
+    "DS-LABEL-003": {
+      "hard_failure": false,
+      "reason": "OCR text alone did not determine whether the brand name describes age, origin, identity, or other characteristics."
+    },
+    "DS-LABEL-012": {
+      "hard_failure": false,
+      "reason": "The class/type chart sufficiency of the extracted designation was not resolved."
+    },
+    "DS-LABEL-013": {
+      "hard_failure": false,
+      "reason": "The class/type chart did not resolve whether this designation is sufficient as stated."
+    },
+    "DS-LABEL-017": {
+      "hard_failure": true,
+      "reason": "Product is a distilled spirits specialty, but OCR/LLM output did not resolve whether the required statement of composition is present."
+    },
+    "DS-LABEL-018": {
+      "hard_failure": true,
+      "reason": "Specialty-product statement of composition could not be resolved from OCR/LLM output."
+    },
+    "DS-LABEL-071": {
+      "hard_failure": false,
+      "reason": "Copied application detail did not include total bottle capacity, so label/application net-contents matching could not be checked."
+    },
+    "DS-LABEL-083": {
+      "hard_failure": false,
+      "reason": "Copied application detail did not expose application ABV, so label/application ABV matching could not be checked."
+    },
+    "DS-LABEL-086": {
+      "hard_failure": false,
+      "reason": "The all-other-spirits tolerance branch applies, but application/label ABV data were insufficient to compare."
+    },
+    "DS-LABEL-140": {
+      "hard_failure": false,
+      "reason": "Application detail did not include sulfur dioxide ppm, so sulfite-declaration applicability could not be determined."
+    },
+    "DS-LABEL-192": {
+      "hard_failure": false,
+      "reason": "Government warning header is exact/all-caps, but OCR text blocks do not prove whether the header is bold."
+    },
+    "DS-LABEL-193": {
+      "hard_failure": false,
+      "reason": "OCR text blocks do not prove whether the government warning body is non-bold."
+    }
+  }
+}
