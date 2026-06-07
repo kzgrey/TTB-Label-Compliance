@@ -9,6 +9,7 @@ function App() {
   const [prompt, setPrompt] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
   const fileInputRef = useRef(null);
 
   const fetchJobs = async () => {
@@ -99,7 +100,19 @@ function App() {
             <p style={{ color: 'var(--text-secondary)' }}>No jobs found.</p>
           ) : (
             jobs.map((job) => (
-              <div key={job.id} className="job-item">
+              <div 
+                key={job.id} 
+                className="job-item" 
+                style={{ cursor: 'pointer' }}
+                onClick={async () => {
+                  try {
+                    const res = await axios.get(`${API_URL}/jobs/${job.id}/details`);
+                    setSelectedJob(res.data);
+                  } catch (e) {
+                    console.error("Failed to load details", e);
+                  }
+                }}
+              >
                 <div className="job-info">
                   <h3>Job ID: {job.id.substring(0, 8)}...</h3>
                   <p className="job-meta">
@@ -115,6 +128,51 @@ function App() {
           )}
         </div>
       </div>
+
+      {selectedJob && (
+        <div className="modal-overlay" onClick={() => setSelectedJob(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelectedJob(null)}>&times;</button>
+            <h2>Job Details: {selectedJob.job.id.substring(0, 8)}</h2>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div className={`status-badge status-${selectedJob.job.status}`} style={{ display: 'inline-block' }}>
+                {selectedJob.job.status}
+              </div>
+              <p className="job-meta" style={{ marginTop: '0.5rem' }}>
+                {selectedJob.job.total_duration_sec && `Total Duration: ${selectedJob.job.total_duration_sec.toFixed(2)}s`}
+              </p>
+            </div>
+
+            {selectedJob.prompt && (
+              <div className="form-group">
+                <h3>Input Prompt</h3>
+                <div className="code-block">{selectedJob.prompt}</div>
+              </div>
+            )}
+
+            {selectedJob.output ? (
+              <>
+                <div className="form-group">
+                  <h3>LLM Output</h3>
+                  <div className="code-block">
+                    {JSON.stringify(selectedJob.output.llm_output, null, 2)}
+                  </div>
+                </div>
+                <div className="form-group">
+                  <h3>OCR Output</h3>
+                  <div className="code-block">
+                    {selectedJob.output.ocr_output}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p>No output available yet.</p>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

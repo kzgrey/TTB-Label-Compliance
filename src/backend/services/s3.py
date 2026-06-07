@@ -38,3 +38,34 @@ def upload_job_output(job_id: str, data: dict):
     key = f"{prefix}/{job_id}/output.json" if prefix else f"{job_id}/output.json"
     s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(data).encode('utf-8'))
     return key
+
+def upload_job_prompt(job_id: str, prompt: str):
+    s3 = get_s3_client()
+    bucket, prefix = _get_bucket_and_prefix()
+    key = f"{prefix}/{job_id}/input/prompt.txt" if prefix else f"{job_id}/input/prompt.txt"
+    s3.put_object(Bucket=bucket, Key=key, Body=prompt.encode('utf-8'))
+    return key
+
+def get_job_data(job_id: str) -> dict:
+    s3 = get_s3_client()
+    bucket, prefix = _get_bucket_and_prefix()
+    
+    prompt_key = f"{prefix}/{job_id}/input/prompt.txt" if prefix else f"{job_id}/input/prompt.txt"
+    output_key = f"{prefix}/{job_id}/output.json" if prefix else f"{job_id}/output.json"
+    
+    result = {"prompt": None, "output": None}
+    
+    try:
+        prompt_resp = s3.get_object(Bucket=bucket, Key=prompt_key)
+        result["prompt"] = prompt_resp['Body'].read().decode('utf-8')
+    except Exception:
+        pass
+        
+    try:
+        output_resp = s3.get_object(Bucket=bucket, Key=output_key)
+        result["output"] = json.loads(output_resp['Body'].read().decode('utf-8'))
+    except Exception:
+        pass
+        
+    return result
+

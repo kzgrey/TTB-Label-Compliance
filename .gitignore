@@ -1,3 +1,7 @@
 .env*
 node_modules/
 __pycache__/
+.DS_Store
+data/
+example/example_review_input.json
+example_review_input.json

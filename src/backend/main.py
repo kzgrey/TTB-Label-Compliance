@@ -7,7 +7,7 @@ from typing import List, Optional
 
 from src.backend.database import engine, Base, get_db
 from src.backend.models import Job
-from src.backend.services.s3 import upload_job_input
+from src.backend.services.s3 import upload_job_input, upload_job_prompt, get_job_data
 from src.backend.worker import start_job_pipeline
 
 app = FastAPI(title="Job Processing API")
@@ -71,8 +71,33 @@ async def submit_job(prompt: str = Form(...), file: UploadFile = File(...), db: 
     
     # Upload to S3
     file_key = upload_job_input(job.id, file_bytes, file.filename)
+    upload_job_prompt(job.id, prompt)
     
     # Start pipeline
     start_job_pipeline(job.id, file_key, prompt)
     
     return {"message": "Job submitted successfully", "job_id": job.id}
+
+@app.get("/jobs/{job_id}/details")
+def get_job_details(job_id: str, db: Session = Depends(get_db)):
+    """
+    Returns the job details including S3 data (LLM/OCR outputs and prompt).
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    data = get_job_data(job_id)
+    return {
+        "job": {
+            "id": job.id,
+            "status": job.status,
+            "created_at": job.created_at.isoformat() if job.created_at else None,
+            "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+            "ocr_duration_sec": job.ocr_duration_sec,
+            "llm_duration_sec": job.llm_duration_sec,
+            "total_duration_sec": job.total_duration_sec
+        },
+        "prompt": data.get("prompt"),
+        "output": data.get("output")
+    }
