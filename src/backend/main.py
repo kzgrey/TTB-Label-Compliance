@@ -8,7 +8,7 @@ from typing import List, Optional
 from src.backend.database import engine, Base, get_db
 from src.backend.models import Job
 from src.backend.services.s3 import upload_job_input, upload_job_prompt, get_job_data
-from src.backend.worker import start_job_pipeline
+from src.backend.worker import execute_job_task
 
 app = FastAPI(title="Job Processing API")
 
@@ -56,25 +56,32 @@ def get_jobs(db: Session = Depends(get_db)):
     return result
 
 @app.post("/jobs/submit")
-async def submit_job(prompt: str = Form(...), file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def submit_job(
+    prompt: str = Form(""), 
+    use_llm_ocr: bool = Form(False),
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db)
+):
     """
     Submits a new job.
+    1. Saves the file to a unique S3 key.
+    2. Enqueues a Celery task.
+    3. Returns the job ID.
     """
-    # Create job in DB
     job = Job(status="pending")
     db.add(job)
     db.commit()
     db.refresh(job)
 
-    # Read file
+    # Save to S3
     file_bytes = await file.read()
-    
-    # Upload to S3
-    file_key = upload_job_input(job.id, file_bytes, file.filename)
+    file_key = upload_job_input(str(job.id), file_bytes, file.filename)
+
+    # Save prompt to S3 for history
     upload_job_prompt(job.id, prompt)
-    
-    # Start pipeline
-    start_job_pipeline(job.id, file_key, prompt)
+
+    # Submit Celery Task
+    execute_job_task.delay("AnalyzeLabelJob", job.id, file_key=file_key, prompt=prompt, use_llm_ocr=use_llm_ocr)
     
     return {"message": "Job submitted successfully", "job_id": job.id}
 

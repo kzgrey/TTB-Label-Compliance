@@ -6,8 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 function Jobs() {
   const [jobs, setJobs] = useState([]);
-  const [prompt, setPrompt] = useState('');
   const [file, setFile] = useState(null);
+  const [useLlmOcr, setUseLlmOcr] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const fileInputRef = useRef(null);
@@ -30,12 +30,12 @@ function Jobs() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file || !prompt) return;
+    if (!file) return;
 
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('prompt', prompt);
+    formData.append('use_llm_ocr', useLlmOcr);
 
     try {
       await axios.post(`${API_URL}/jobs/submit`, formData, {
@@ -44,7 +44,6 @@ function Jobs() {
         }
       });
       // Reset form
-      setPrompt('');
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       fetchJobs();
@@ -66,17 +65,6 @@ function Jobs() {
         <h2>Submit New Job</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="prompt">Instructions / Prompt</label>
-            <input 
-              type="text" 
-              id="prompt" 
-              value={prompt} 
-              onChange={(e) => setPrompt(e.target.value)} 
-              placeholder="e.g., Extract the company name and logo description..."
-              required 
-            />
-          </div>
-          <div className="form-group">
             <label htmlFor="file">Image File</label>
             <input 
               type="file" 
@@ -87,7 +75,18 @@ function Jobs() {
               required 
             />
           </div>
-          <button type="submit" disabled={loading || !file || !prompt}>
+          <div className="form-group">
+            <label htmlFor="ocr-method">OCR Method</label>
+            <select 
+              id="ocr-method" 
+              value={useLlmOcr ? "llm" : "tesseract"} 
+              onChange={(e) => setUseLlmOcr(e.target.value === "llm")}
+            >
+              <option value="tesseract">Tesseract</option>
+              <option value="llm">LLM</option>
+            </select>
+          </div>
+          <button type="submit" disabled={loading || !file}>
             {loading ? 'Submitting...' : 'Process Image'}
           </button>
         </form>
@@ -144,12 +143,6 @@ function Jobs() {
               </p>
             </div>
 
-            {selectedJob.prompt && (
-              <div className="form-group">
-                <h3>Input Prompt</h3>
-                <div className="code-block">{selectedJob.prompt}</div>
-              </div>
-            )}
 
             {selectedJob.output ? (
               <>

@@ -40,7 +40,7 @@ class VisionLLMProvider(abc.ABC):
 class OpenAIVisionLLM(VisionLLMProvider):
     def __init__(self):
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = "gpt-4o"
+        self.model = "gpt-5.4-mini"
 
     @timing_decorator
     def execute_prompt(self, prompt: str, image_bytes: bytes) -> Dict[str, Any]:
@@ -69,7 +69,7 @@ class OpenAIVisionLLM(VisionLLMProvider):
                     ]
                 }
             ],
-            max_tokens=1024,
+            #max_tokens=1024,
             seed=seed
         )
         

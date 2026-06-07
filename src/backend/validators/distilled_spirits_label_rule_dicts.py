@@ -444,10 +444,10 @@ def _evaluate_class_type_rules(b: _RuleDictBuilder, review: ds.DistilledSpiritsL
         "DS-LABEL-024",
         identity.is_creme_de,
         class_type.predominant_flavor_declared,
-        triggered_pass="Crème de product has the predominant flavor resolved in the designation.",
-        triggered_fail="Crème de product did not resolve the predominant flavor in the designation.",
-        triggered_unknown="Crème de product requires the predominant flavor in the designation, but OCR/LLM output did not resolve it.",
-        not_triggered="Application does not identify a Crème de product; rule is not triggered.",
+        triggered_pass="Creme de product has the predominant flavor resolved in the designation.",
+        triggered_fail="Creme de product did not resolve the predominant flavor in the designation.",
+        triggered_unknown="Creme de product requires the predominant flavor in the designation, but OCR/LLM output did not resolve it.",
+        not_triggered="Application does not identify a Creme de product; rule is not triggered.",
     )
 
     # More specialized class/type rules.  These pass when their trigger facts are absent,

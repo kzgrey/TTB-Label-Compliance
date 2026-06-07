@@ -21,18 +21,18 @@ celery_app.conf.update(
     enable_utc=True,
 )
 
-@celery_app.task
-def task_ocr(job_id: str, file_key: str):
-    file_bytes = download_job_input(file_key)
-    result = process_image_with_tesseract(file_bytes)
-    return {"job_id": job_id, "ocr_result": result}
+# @celery_app.task
+# def task_ocr(job_id: str, file_key: str):
+#     file_bytes = download_job_input(file_key)
+#     result = process_image_with_tesseract(file_bytes)
+#     return {"job_id": job_id, "ocr_result": result}
 
-@celery_app.task
-def task_llm(job_id: str, file_key: str, prompt: str):
-    file_bytes = download_job_input(file_key)
-    provider = get_llm_provider()
-    result = provider.execute_prompt(prompt, file_bytes)
-    return {"job_id": job_id, "llm_result": result}
+# @celery_app.task
+# def task_llm(job_id: str, file_key: str, prompt: str):
+#     file_bytes = download_job_input(file_key)
+#     provider = get_llm_provider()
+#     result = provider.execute_prompt(prompt, file_bytes)
+#     return {"job_id": job_id, "llm_result": result}
 
 @celery_app.task
 def task_join_results(results: list, job_id: str):
@@ -107,6 +107,6 @@ def execute_job_task(job_type: str, job_id: str, *args, **kwargs):
     if job_type == "AnalyzeLabelJob":
         from src.backend.jobs.analyze_label import AnalyzeLabelJob
         job = AnalyzeLabelJob(job_id)
-        return job.run(*args, **kwargs)
+        return job.execute(*args, **kwargs)
     else:
         raise ValueError(f"Unknown job type: {job_type}")
