@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import json
 import aws_cdk as cdk
 from aws_cdk import (
     Stack,
@@ -22,8 +23,14 @@ class TtbLabelComplianceStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, env_name: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        # Load Configuration
+        config_path = os.path.join(os.path.dirname(__file__), "deployment_config.json")
+        with open(config_path, "r") as f:
+            all_configs = json.load(f)
+        config = all_configs.get(env_name, all_configs.get("default", {}))
+
         # 1. VPC
-        vpc = ec2.Vpc(self, f"Vpc-{env_name}", max_azs=2)
+        vpc = ec2.Vpc(self, f"Vpc-{env_name}", max_azs=config.get("vpc_max_azs", 2))
 
         # 2. S3 Buckets
         bucket = s3.Bucket(
@@ -47,7 +54,10 @@ class TtbLabelComplianceStack(Stack):
         db = rds.DatabaseInstance(
             self, f"JobsDb-{env_name}",
             engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_15),
-            instance_type=ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+            instance_type=ec2.InstanceType.of(
+                getattr(ec2.InstanceClass, config.get("rds_instance_class", "T3")), 
+                getattr(ec2.InstanceSize, config.get("rds_instance_size", "MICRO"))
+            ),
             vpc=vpc,
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
             security_groups=[db_security_group],
@@ -66,7 +76,7 @@ class TtbLabelComplianceStack(Stack):
         )
         redis = elasticache.CfnCacheCluster(
             self, f"RedisCluster-{env_name}",
-            cache_node_type="cache.t3.micro",
+            cache_node_type=config.get("redis_node_type", "cache.t3.micro"),
             engine="redis",
             num_cache_nodes=1,
             cache_subnet_group_name=subnet_group.ref,
@@ -99,8 +109,8 @@ class TtbLabelComplianceStack(Stack):
         api_service = ecs_patterns.ApplicationLoadBalancedFargateService(
             self, f"ApiService-{env_name}",
             cluster=cluster,
-            cpu=512,
-            memory_limit_mib=1024,
+            cpu=config.get("ecs_api_cpu", 512),
+            memory_limit_mib=config.get("ecs_api_memory", 1024),
             desired_count=1,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=image,
@@ -117,8 +127,8 @@ class TtbLabelComplianceStack(Stack):
         # 7. Celery Worker (Fargate Service)
         worker_task_def = ecs.FargateTaskDefinition(
             self, f"WorkerTaskDef-{env_name}",
-            cpu=512,
-            memory_limit_mib=1024,
+            cpu=config.get("ecs_worker_cpu", 512),
+            memory_limit_mib=config.get("ecs_worker_memory", 1024),
             runtime_platform=ecs.RuntimePlatform(
                 cpu_architecture=ecs.CpuArchitecture.ARM64,
                 operating_system_family=ecs.OperatingSystemFamily.LINUX,
@@ -172,5 +182,9 @@ class TtbLabelComplianceStack(Stack):
 
 app = cdk.App()
 env_name = app.node.try_get_context("env_name") or "dev"
-TtbLabelComplianceStack(app, f"TtbLabelComplianceStack-{env_name}", env_name=env_name)
+stack = TtbLabelComplianceStack(app, f"TtbLabelComplianceStack-{env_name}", env_name=env_name)
+
+# Add cost tracking tag to all resources in the stack
+cdk.Tags.of(app).add("AppManagerCFNStackKey", f"TtbLabelComplianceStack-{env_name}")
+
 app.synth()
