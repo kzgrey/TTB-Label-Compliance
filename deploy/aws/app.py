@@ -90,7 +90,7 @@ class TtbLabelComplianceStack(Stack):
         image = ecs.ContainerImage.from_asset(
             "../../",
             file="Dockerfile.backend",
-            exclude=["deploy/aws/cdk.out", "node_modules", ".git", "__pycache__"]
+            exclude=["deploy/aws/cdk.out", "**/node_modules", ".git", "**/__pycache__"]
         )
 
         # Environment Variables

@@ -1,0 +1,9 @@
+node_modules/
+**/node_modules/
+.git/
+__pycache__/
+*.pyc
+deploy/aws/cdk.out/
+dist/
+**/dist/
+.env

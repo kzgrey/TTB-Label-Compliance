@@ -77,7 +77,7 @@ class AnalyzeLabelJob(BaseJob):
         combined_prompt = f"User Instructions:\n{NORMALIZE_TEXTBLOCKS_PROMPT2}\n\nExtracted OCR Text:\n{ocr_text}"
         
         provider = get_llm_provider()
-        llm_result = provider.execute_json_prompt(combined_prompt, file_bytes)
+        llm_result = provider.execute_json_prompt(combined_prompt)
         
         llm_json = llm_result.get("json", {})
         label_dict = llm_json.get("Label", {})

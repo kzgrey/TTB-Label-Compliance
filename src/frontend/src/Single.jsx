@@ -25,10 +25,32 @@ function Single() {
   const [jobId, setJobId] = useState(null);
   const [jobDetails, setJobDetails] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
 
   const fileInputRef = useRef(null);
   const pollInterval = useRef(null);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setFile(e.dataTransfer.files[0]);
+      if (fileInputRef.current) {
+        fileInputRef.current.files = e.dataTransfer.files;
+      }
+    }
+  };
 
   const getFieldStatus = (prefixes) => {
     if (!jobDetails || !jobDetails.output) return 'fail';
@@ -109,23 +131,47 @@ function Single() {
   return (
     <div className="container">
       <header>
-        <h1>Single Application Analysis</h1>
+        <h1>Alcoholic Beverage Label Compliance</h1>
         <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>&larr; Back to Home</Link>
       </header>
+
+      <div className="glass-panel" style={{ marginBottom: '2rem' }}>
+        <p style={{ margin: 0 }}>
+          <strong>Instructions:</strong> Upload a label image and optionally paste the COLA application facts below. 
+          The system currently only contains rules for Distilled Spirits, derived from the{' '}
+          <a href="https://www.ttb.gov/system/files/images/pdfs/spirits_bam/complete-distilled-spirit-beverage-alcohol-manual.pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-color)' }}>
+            BAM for Distilled Spirits
+          </a>.
+        </p>
+      </div>
 
       <div className="glass-panel">
         <h2>Submit Application</h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="file">Label Image</label>
+          <div 
+            className="form-group" 
+            onDragOver={handleDragOver} 
+            onDragLeave={handleDragLeave} 
+            onDrop={handleDrop}
+            style={{ 
+              border: isDragging ? '2px dashed var(--primary-color)' : '2px dashed transparent', 
+              padding: '1rem', 
+              borderRadius: '8px',
+              transition: 'border 0.2s ease',
+              backgroundColor: isDragging ? 'rgba(100, 108, 255, 0.1)' : 'transparent'
+            }}
+          >
+            <label htmlFor="file">Label Image (Drag & Drop here)</label>
             <input
               type="file"
               id="file"
               accept="image/*"
               ref={fileInputRef}
               onChange={(e) => setFile(e.target.files[0])}
+              style={{ width: '100%', boxSizing: 'border-box' }}
               required
             />
+            {file && <p style={{marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--primary-color)'}}>Selected: {file.name}</p>}
           </div>
           <div className="form-group">
             <label htmlFor="prompt">Application Information (JSON or Text)</label>
@@ -134,6 +180,7 @@ function Single() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows="5"
+              style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical' }}
               placeholder="Paste the COLA application facts or text here..."
             ></textarea>
           </div>
@@ -222,35 +269,63 @@ function Single() {
                   </div>
 
                   <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                    <h3>Rules Passed</h3>
-                    <div className="code-block" style={{ borderColor: '#4caf50' }}>
-                      {JSON.stringify(jobDetails.output.rules_passed, null, 2)}
-                    </div>
+                    <h3 style={{ color: '#4caf50' }}>Rules Passed ({Object.keys(jobDetails.output.rules_passed || {}).length})</h3>
+                    <ul style={{ paddingLeft: '20px' }}>
+                      {Object.entries(jobDetails.output.rules_passed || {}).map(([rule, desc]) => (
+                        <li key={rule}><strong>{rule}</strong>: {desc.message}</li>
+                      ))}
+                    </ul>
                   </div>
                   <div className="form-group">
-                    <h3>Rules Failed</h3>
-                    <div className="code-block" style={{ borderColor: '#f44336' }}>
-                      {JSON.stringify(jobDetails.output.rules_failed, null, 2)}
-                    </div>
+                    <h3 style={{ color: '#f44336' }}>Rules Failed ({Object.keys(jobDetails.output.rules_failed || {}).length})</h3>
+                    <ul style={{ paddingLeft: '20px' }}>
+                      {Object.entries(jobDetails.output.rules_failed || {}).map(([rule, desc]) => (
+                        <li key={rule}><strong>{rule}</strong>: {desc.message}{desc.is_hard_failure ? ' (Hard Failure)' : ''}</li>
+                      ))}
+                    </ul>
                   </div>
                   <div className="form-group">
-                    <h3>Rules Unknown</h3>
-                    <div className="code-block" style={{ borderColor: '#ff9800' }}>
-                      {JSON.stringify(jobDetails.output.rules_unknown, null, 2)}
-                    </div>
+                    <h3 style={{ color: '#ff9800' }}>Rules Unknown ({Object.keys(jobDetails.output.rules_unknown || {}).length})</h3>
+                    <ul style={{ paddingLeft: '20px' }}>
+                      {Object.entries(jobDetails.output.rules_unknown || {}).map(([rule, desc]) => (
+                        <li key={rule}><strong>{rule}</strong>: {desc.message}</li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="form-group">
-                    <h3>LLM JSON Extract</h3>
-                    <div className="code-block">
-                      {JSON.stringify(jobDetails.output.llm_extracted_json, null, 2)}
+                  
+                  <details style={{ marginTop: '2rem', padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>View Raw JSON Data</summary>
+                    <div className="form-group" style={{ marginTop: '1rem' }}>
+                      <h3>Rules Passed</h3>
+                      <div className="code-block" style={{ borderColor: '#4caf50' }}>
+                        {JSON.stringify(jobDetails.output.rules_passed, null, 2)}
+                      </div>
                     </div>
-                  </div>
-                  <div className="form-group">
-                    <h3>Raw OCR Output</h3>
-                    <div className="code-block">
-                      {jobDetails.output.ocr_output}
+                    <div className="form-group">
+                      <h3>Rules Failed</h3>
+                      <div className="code-block" style={{ borderColor: '#f44336' }}>
+                        {JSON.stringify(jobDetails.output.rules_failed, null, 2)}
+                      </div>
                     </div>
-                  </div>
+                    <div className="form-group">
+                      <h3>Rules Unknown</h3>
+                      <div className="code-block" style={{ borderColor: '#ff9800' }}>
+                        {JSON.stringify(jobDetails.output.rules_unknown, null, 2)}
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <h3>LLM JSON Extract</h3>
+                      <div className="code-block">
+                        {JSON.stringify(jobDetails.output.llm_extracted_json, null, 2)}
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <h3>Raw OCR Output</h3>
+                      <div className="code-block">
+                        {jobDetails.output.ocr_output}
+                      </div>
+                    </div>
+                  </details>
                 </>
               ) : (
                 <p>No output available.</p>
