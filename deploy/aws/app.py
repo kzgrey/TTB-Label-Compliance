@@ -13,7 +13,8 @@ from aws_cdk import (
     aws_apigatewayv2_integrations as apigwv2_integrations,
     aws_iam as iam,
     RemovalPolicy,
-    CfnOutput
+    CfnOutput,
+    Duration
 )
 from constructs import Construct
 
@@ -24,24 +25,36 @@ class TtbLabelComplianceStack(Stack):
         # 1. VPC
         vpc = ec2.Vpc(self, f"Vpc-{env_name}", max_azs=2)
 
-        # 2. S3 Bucket
+        # 2. S3 Buckets
         bucket = s3.Bucket(
             self, f"JobsBucket-{env_name}",
             removal_policy=RemovalPolicy.DESTROY, # Only safe if empty
             auto_delete_objects=True # CDK native auto-delete
         )
 
+        frontend_bucket = s3.Bucket(
+            self, f"FrontendBucket-{env_name}",
+            website_index_document="index.html",
+            website_error_document="index.html",
+            public_read_access=True,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ACLS,
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True
+        )
+
         # 3. RDS (PostgreSQL)
         db_security_group = ec2.SecurityGroup(self, f"DbSg-{env_name}", vpc=vpc)
         db = rds.DatabaseInstance(
             self, f"JobsDb-{env_name}",
-            engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_15_4),
+            engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_15),
             instance_type=ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
             vpc=vpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
             security_groups=[db_security_group],
             removal_policy=RemovalPolicy.DESTROY,
-            deletion_protection=False
+            deletion_protection=False,
+            database_name="jobsdb",
+            backup_retention=Duration.days(0)
         )
 
         # 4. ElastiCache (Redis)
@@ -64,7 +77,11 @@ class TtbLabelComplianceStack(Stack):
         cluster = ecs.Cluster(self, f"Cluster-{env_name}", vpc=vpc)
 
         # Build Image
-        image = ecs.ContainerImage.from_asset("../../", file="Dockerfile.backend")
+        image = ecs.ContainerImage.from_asset(
+            "../../",
+            file="Dockerfile.backend",
+            exclude=["deploy/aws/cdk.out", "node_modules", ".git", "__pycache__"]
+        )
 
         # Environment Variables
         db_url = f"postgresql://{db.secret.secret_value_from_json('username').unsafe_unwrap()}:{db.secret.secret_value_from_json('password').unsafe_unwrap()}@{db.db_instance_endpoint_address}:5432/{db.secret.secret_value_from_json('dbname').unsafe_unwrap()}"
@@ -90,7 +107,11 @@ class TtbLabelComplianceStack(Stack):
                 container_port=8000,
                 environment=environment
             ),
-            public_load_balancer=True
+            public_load_balancer=True,
+            runtime_platform=ecs.RuntimePlatform(
+                cpu_architecture=ecs.CpuArchitecture.ARM64,
+                operating_system_family=ecs.OperatingSystemFamily.LINUX,
+            )
         )
 
         # 7. Celery Worker (Fargate Service)
@@ -98,6 +119,10 @@ class TtbLabelComplianceStack(Stack):
             self, f"WorkerTaskDef-{env_name}",
             cpu=512,
             memory_limit_mib=1024,
+            runtime_platform=ecs.RuntimePlatform(
+                cpu_architecture=ecs.CpuArchitecture.ARM64,
+                operating_system_family=ecs.OperatingSystemFamily.LINUX,
+            )
         )
         worker_task_def.add_container(
             f"WorkerContainer-{env_name}",
@@ -142,6 +167,8 @@ class TtbLabelComplianceStack(Stack):
         CfnOutput(self, "ApiGatewayUrl", value=http_api.api_endpoint)
         CfnOutput(self, "AlbDnsName", value=api_service.load_balancer.load_balancer_dns_name)
         CfnOutput(self, "JobsBucketName", value=bucket.bucket_name)
+        CfnOutput(self, "FrontendBucketName", value=frontend_bucket.bucket_name)
+        CfnOutput(self, "FrontendWebsiteUrl", value=frontend_bucket.bucket_website_url)
 
 app = cdk.App()
 env_name = app.node.try_get_context("env_name") or "dev"

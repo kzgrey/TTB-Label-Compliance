@@ -6,3 +6,5 @@ data/
 example/example_review_input.json
 example_review_input.json
 todo*.txt
+deploy/aws/cdk.out/
+deploy/aws/cdk-outputs.json

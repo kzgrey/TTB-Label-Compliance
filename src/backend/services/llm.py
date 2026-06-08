@@ -37,6 +37,13 @@ class VisionLLMProvider(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def execute_json_prompt(self, prompt: str, image_bytes: bytes = None) -> Dict[str, Any]:
+        """
+        Executes a prompt requesting JSON output. Image is optional.
+        """
+        pass
+
 class OpenAIVisionLLM(VisionLLMProvider):
     def __init__(self):
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -50,7 +57,7 @@ class OpenAIVisionLLM(VisionLLMProvider):
         """
         base64_image = base64.b64encode(image_bytes).decode('utf-8')
         
-        # Random seed to prevent caching
+        # Random seed to prevent OpenAI from relying on cached results
         seed = random.randint(1, 1000000)
 
         response = self.client.chat.completions.create(
@@ -69,13 +76,50 @@ class OpenAIVisionLLM(VisionLLMProvider):
                     ]
                 }
             ],
-            #max_tokens=1024,
             seed=seed
         )
         
-        # Assume structured prompt execution returns parsable output or raw text
         return {
             "text": response.choices[0].message.content,
+            "seed_used": seed
+        }
+
+    @timing_decorator
+    def execute_json_prompt(self, prompt: str, image_bytes: bytes = None) -> Dict[str, Any]:
+        seed = random.randint(1, 1000000)
+        
+        content = [{"type": "text", "text": prompt}]
+        if image_bytes:
+            base64_image = base64.b64encode(image_bytes).decode('utf-8')
+            content.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}"
+                }
+            })
+
+        response = self.client.chat.completions.create(
+            model=self.model,
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "user",
+                    "content": content
+                }
+            ],
+            seed=seed
+        )
+        
+        import json
+        text = response.choices[0].message.content
+        try:
+            parsed_json = json.loads(text)
+        except Exception:
+            parsed_json = {}
+            
+        return {
+            "text": text,
+            "json": parsed_json,
             "seed_used": seed
         }
 

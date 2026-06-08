@@ -317,3 +317,53 @@ Selection rules:
 - Keep ABV and Proof separate unless the source text explicitly combines them.
 - Do not put GovernmentWarningText in RuleSpecificFact."""
 
+EXTRACT_APPLICATION_PROMPT = """Extract facts from the pasted TTB COLA application text into JSON.
+
+Rules:
+- Copy text exactly from the input when possible.
+- Do not infer, rewrite, normalize units, translate, or summarize unless necessary to match the structure.
+- If no source text supports a field, use null.
+- GovernmentWarningText and GovernmentWarningHeaderText should always be null for application text.
+- Return JSON only matching this exact schema.
+
+Output exactly:
+
+{
+  "BrandName": null,
+  "ClassTypeDesignation": null,
+  "ABV": null,
+  "NetContents": null,
+  "BottlerProducerNameAddr": null,
+  "ImportOrigin": null,
+  "FancifulName": null,
+  "WhiskyDesignation": null,
+  "Proof": null,
+  "ColoringMaterialDisclosure": null,
+  "ForeignComponentPercentagesAndOrigins": null,
+  "RuleSpecificFact": null,
+  "PercentageAndName": null,
+  "ContainerEmbossedText": null,
+  "GovernmentWarningText": null,
+  "GovernmentWarningHeaderText": null,
+  "ContainerOrLabelCoding": null
+}
+
+Field meanings:
+- BrandName: brand name.
+- ClassTypeDesignation: Distilled Spirits, Beer, Wine, Other, or specific class/type code.
+- ABV: alcohol-content statement (e.g. 40%).
+- NetContents: net-contents statement (e.g. 750 mL).
+- BottlerProducerNameAddr: bottler, producer, brewer, distiller, importer, or responsible party name/address.
+- ImportOrigin: origin code or imported-from statement.
+- FancifulName: product name separate from brand and class/type.
+- WhiskyDesignation: whisky-specific designation.
+- Proof: proof statement.
+- ColoringMaterialDisclosure: coloring/caramel/artificial/certified color disclosure.
+- ForeignComponentPercentagesAndOrigins: foreign component percentage/origin statement.
+- RuleSpecificFact: relevant label text that fits no other field.
+- PercentageAndName: percentage/name listing for blended components.
+- ContainerEmbossedText: embossed, blown, branded, molded, etched, or container-formed text.
+- GovernmentWarningText: null.
+- GovernmentWarningHeaderText: null.
+- ContainerOrLabelCoding: printed/stamped/coded lot, batch, date, or production marking.
+"""

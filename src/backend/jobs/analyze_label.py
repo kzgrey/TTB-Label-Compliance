@@ -15,102 +15,110 @@ class AnalyzeLabelJob(BaseJob):
 
     def run(self, file_key: str, prompt: str = "", use_llm_ocr: bool = False, *args, **kwargs):
         self.application_detail_text = prompt
-        self.prompt = NORMALIZE_TEXTBLOCKS_PROMPT2
-
-        self.logger.info(f"Starting {'LLM OCR' if use_llm_ocr else 'Tesseract OCR'} processing")
+        
+        self.logger.info("Starting concurrent extraction for OCR/Label and Application")
         start_time = time.time()
-        
-        # Execute OCR synchronously within the worker process
-        if use_llm_ocr:
-            from src.backend.services.ocr import process_image_with_llm
-            ocr_result = process_image_with_llm(self.file_bytes)
-        else:
-            ocr_result = process_image_with_tesseract(self.file_bytes)
-            
-        ocr_text = ocr_result.get("text", "")
-        ocr_duration = ocr_result.get("duration_sec", 0.0)
-        self.logger.info(f"OCR Duration: {ocr_duration}s")
-        self.logger.info(f"OCR Extracted Text:\n{ocr_text}")
 
-        # Next, make an LLM call using that text and a prompt.
-        combined_prompt = f"User Instructions:\n{self.prompt}\n\nExtracted OCR Text:\n{ocr_text}"
-        self.logger.info("Executing LLM call")
-        provider = get_llm_provider()
-        llm_result = provider.execute_prompt(combined_prompt, self.file_bytes)
+        from concurrent.futures import ThreadPoolExecutor
         
-        llm_text = llm_result.get("text", "")
-        llm_duration = llm_result.get("duration_sec", 0.0)
-        self.logger.info(f"LLM Duration: {llm_duration}s")
-        self.logger.info(f"LLM Response:\n{llm_text}")
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future_label = executor.submit(self.extract_label, use_llm_ocr, self.file_bytes)
+            future_app = executor.submit(self.extract_application, self.application_detail_text)
             
+            label_result = future_label.result()
+            app_result = future_app.result()
+
         total_duration = time.time() - start_time
-        self.logger.info(f"OCR & LLM Processing completed in {total_duration:.2f}s")
+        self.logger.info(f"Concurrent processing completed in {total_duration:.2f}s")
         
-        # Format the output as expected by the frontend
-        llm_duration = llm_result.get("duration_sec", 0.0)
-        self.logger.info(f"LLM Response:\n{llm_text}")
-
-        import json
-        from src.backend.extraction.distilled_spirits_label_construction import construct_review_input, dataclass_to_dict, contains_normalized_text
-        from src.backend.extraction.distilled_spirits_label_dataclasses import ExtractedText, GOVERNMENT_WARNING_FULL_TEXT
-        from src.backend.validators.distilled_spirits_label_rule_dicts import build_rule_result_dicts
-
+        from src.backend.validators.distilled_spirits_label_rule_dicts import evaluate_rules
+        
         try:
-            clean_json = llm_text.replace("```json", "").replace("```", "").strip()
-            llm_json = json.loads(clean_json)
-            
-            label_dict = llm_json.get("Label", {})
-            normalized_blocks = [v for v in label_dict.values() if isinstance(v, str)]
-            
-            result = construct_review_input(
-                application_detail_text=self.application_detail_text,
-                ocr_text_blocks=normalized_blocks,
-            )
-            
-            # Use explicit LLM extraction for government warnings
-            warning_label = result.review_input.label.government_warning
-            gov_header = label_dict.get("GovernmentWarningHeaderText")
-            gov_body = label_dict.get("GovernmentWarningText")
-            
-            if gov_header is not None and isinstance(gov_header, str):
-                warning_label.header_text = ExtractedText(text=gov_header, normalized_text=gov_header)
-                warning_label.header_is_exact_all_caps = (gov_header.strip() == "GOVERNMENT WARNING:")
-                
-            if gov_body is not None and isinstance(gov_body, str):
-                warning_label.full_text = ExtractedText(text=gov_body, normalized_text=gov_body)
-                warning_label.exact_required_text_present = contains_normalized_text(
-                    gov_body, GOVERNMENT_WARNING_FULL_TEXT, case_sensitive=True
-                )
-
-            rule_dicts = build_rule_result_dicts(result.review_input)
-            
-            rules_passed = {k: dataclass_to_dict(v) for k, v in rule_dicts.rule_passes.items()}
-            rules_failed = {k: dataclass_to_dict(v) for k, v in rule_dicts.rule_fails.items()}
-            rules_unknown = {k: dataclass_to_dict(v) for k, v in rule_dicts.rule_unknown.items()}
+            rule_dicts = evaluate_rules(label_result["data"], app_result["data"])
+            rules_passed = rule_dicts.get("passed", {})
+            rules_failed = rule_dicts.get("failed", {})
+            rules_unknown = rule_dicts.get("unknown", {})
         except Exception as e:
-            self.logger.error(f"Failed to parse LLM JSON or run rules: {e}")
-            llm_json = {"error": str(e)}
+            self.logger.error(f"Failed to evaluate rules: {e}")
             rules_passed = {}
             rules_failed = {}
             rules_unknown = {}
 
         final_output = {
-            "ocr_output": ocr_text,
-            "ocr_duration_sec": ocr_duration,
-            "llm_output": llm_text,
-            "llm_extracted_json": llm_json,
-            "llm_duration_sec": llm_duration,
+            "ocr_output": label_result["ocr_text"],
+            "ocr_duration_sec": label_result["ocr_duration"],
+            "llm_output": label_result["llm_text"],
+            "llm_extracted_json": label_result["llm_json"],
+            "llm_duration_sec": label_result["llm_duration"],
             "total_duration_sec": total_duration,
             "rules_passed": rules_passed,
             "rules_failed": rules_failed,
             "rules_unknown": rules_unknown,
-            "application_data": dataclass_to_dict(result.review_input.application) if 'result' in locals() else None,
+            "application_data": app_result["data"].model_dump() if app_result.get("data") else None,
         }
 
         # Write final outputs to S3
         outputs_key = f"{self.job_id}/output.json"
             
         return final_output
+
+    def extract_label(self, use_llm_ocr: bool, file_bytes: bytes) -> dict:
+        self.logger.info(f"Starting {'LLM OCR' if use_llm_ocr else 'Tesseract OCR'} processing")
+        if use_llm_ocr:
+            from src.backend.services.ocr import process_image_with_llm
+            ocr_result = process_image_with_llm(file_bytes)
+        else:
+            ocr_result = process_image_with_tesseract(file_bytes)
+            
+        ocr_text = ocr_result.get("text", "")
+        ocr_duration = ocr_result.get("duration_sec", 0.0)
+        
+        from src.backend.prompts.gpt_mini_prompts import NORMALIZE_TEXTBLOCKS_PROMPT2
+        combined_prompt = f"User Instructions:\n{NORMALIZE_TEXTBLOCKS_PROMPT2}\n\nExtracted OCR Text:\n{ocr_text}"
+        
+        provider = get_llm_provider()
+        llm_result = provider.execute_json_prompt(combined_prompt, file_bytes)
+        
+        llm_json = llm_result.get("json", {})
+        label_dict = llm_json.get("Label", {})
+        
+        from src.backend.extraction.unified_schema import LabelData
+        try:
+            data = LabelData(**label_dict)
+        except Exception as e:
+            self.logger.error(f"Failed to parse LabelData: {e}")
+            data = None
+            
+        return {
+            "ocr_text": ocr_text,
+            "ocr_duration": ocr_duration,
+            "llm_text": llm_result.get("text", ""),
+            "llm_json": llm_json,
+            "llm_duration": llm_result.get("duration_sec", 0.0),
+            "data": data
+        }
+
+    def extract_application(self, text: str) -> dict:
+        self.logger.info("Starting Application LLM extraction")
+        if not text or not text.strip():
+            return {"data": None}
+            
+        from src.backend.prompts.gpt_mini_prompts import EXTRACT_APPLICATION_PROMPT
+        combined_prompt = f"{EXTRACT_APPLICATION_PROMPT}\n\nPasted Text:\n{text}"
+        
+        provider = get_llm_provider()
+        llm_result = provider.execute_json_prompt(combined_prompt)
+        
+        from src.backend.extraction.unified_schema import LabelData
+        try:
+            data = LabelData(**llm_result.get("json", {}))
+        except Exception as e:
+            self.logger.error(f"Failed to parse Application LabelData: {e}")
+            data = None
+            
+        return {
+            "data": data
+        }
 
     def cleanup(self):
         self.logger.info("Cleaning up resources.")

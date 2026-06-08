@@ -6,15 +6,15 @@ import './index.css';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const FIELD_MAPPING = [
-  { label: 'Brand', key: 'BrandName', prefixes: ['DS-LABEL-00'] },
-  { label: 'Class', key: 'ClassTypeDesignation', prefixes: ['DS-LABEL-01', 'DS-LABEL-02'] },
-  { label: 'ABV', key: 'ABV', prefixes: ['DS-LABEL-080', 'DS-LABEL-081', 'DS-LABEL-082', 'DS-LABEL-083', 'DS-LABEL-084', 'DS-LABEL-085', 'DS-LABEL-086', 'DS-LABEL-087'] },
-  { label: 'Proof', key: 'Proof', prefixes: ['DS-LABEL-088', 'DS-LABEL-089'] },
-  { label: 'Net Contents', key: 'NetContents', prefixes: ['DS-LABEL-07'] },
-  { label: 'Bottler/Producer', key: 'BottlerProducerNameAddr', prefixes: ['DS-LABEL-03', 'DS-LABEL-04'] },
-  { label: 'Origin', key: 'ImportOrigin', prefixes: ['DS-LABEL-05'] },
-  { label: 'Govt Warning Header Present', key: 'GovernmentWarningHeaderText', prefixes: ['DS-LABEL-192'] },
-  { label: 'Govt Warning Present', key: 'GovernmentWarningText', prefixes: ['DS-LABEL-191'] },
+  { label: 'Brand', key: 'BrandName', prefixes: ['DS-LABEL-001'] },
+  { label: 'Class', key: 'ClassTypeDesignation', prefixes: ['DS-LABEL-010'] },
+  { label: 'ABV', key: 'ABV', prefixes: ['DS-LABEL-020'] },
+  { label: 'Net Contents', key: 'NetContents', prefixes: ['DS-LABEL-030'] },
+  { label: 'Bottler/Producer', key: 'BottlerProducerNameAddr', prefixes: ['DS-LABEL-040'] },
+  { label: 'Origin', key: 'ImportOrigin', prefixes: ['DS-LABEL-050'] },
+  { label: 'Proof', key: 'Proof', prefixes: ['DS-LABEL-060'] },
+  { label: 'Govt Warning Header Present', key: 'GovernmentWarningHeaderText', prefixes: ['DS-LABEL-191'] },
+  { label: 'Govt Warning Present', key: 'GovernmentWarningText', prefixes: ['DS-LABEL-192'] },
 ];
 
 function Single() {
@@ -105,24 +105,6 @@ function Single() {
       if (pollInterval.current) clearInterval(pollInterval.current);
     };
   }, []);
-
-  const getAppValue = (key, appData) => {
-    if (!appData) return null;
-    switch (key) {
-      case 'BrandName': return appData.identity?.brand_name;
-      case 'ClassTypeDesignation': return appData.identity?.class_type_designation;
-      case 'ABV': return appData.alcohol?.abv_percent != null ? `${appData.alcohol.abv_percent}%` : null;
-      case 'Proof': return appData.alcohol?.proof;
-      case 'NetContents': return appData.net_contents?.net_contents_ml != null ? `${appData.net_contents.net_contents_ml} ml` : null;
-      case 'ImportOrigin': return appData.country_of_origin;
-      case 'BottlerProducerNameAddr': 
-        if (appData.responsible_parties && appData.responsible_parties.length > 0) {
-           return appData.responsible_parties.map(rp => rp.name).join(', ');
-        }
-        return null;
-      default: return 'N/A';
-    }
-  };
 
   return (
     <div className="container">
@@ -218,7 +200,7 @@ function Single() {
                       {FIELD_MAPPING.map(field => {
                         const status = getFieldStatus(field.prefixes);
                         const val = jobDetails.output.llm_extracted_json?.Label?.[field.key];
-                        const appVal = getAppValue(field.key, jobDetails.output.application_data);
+                        const appVal = jobDetails.output.application_data?.[field.key];
                         return (
                           <React.Fragment key={field.key}>
                             <div style={{ alignSelf: 'center' }}>{field.label}</div>

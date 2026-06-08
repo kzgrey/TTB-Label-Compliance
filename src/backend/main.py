@@ -28,6 +28,11 @@ app.add_middleware(
 # Initialize DB
 Base.metadata.create_all(bind=engine)
 
+@app.get("/")
+def health_check():
+    """Health check endpoint for AWS ALB."""
+    return {"status": "ok"}
+
 class JobResponse(BaseModel):
     id: str
     status: str
