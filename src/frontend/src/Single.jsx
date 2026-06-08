@@ -1,9 +1,21 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './index.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const FIELD_MAPPING = [
+  { label: 'Brand', key: 'BrandName', prefixes: ['DS-LABEL-00'] },
+  { label: 'Class', key: 'ClassTypeDesignation', prefixes: ['DS-LABEL-01', 'DS-LABEL-02'] },
+  { label: 'ABV', key: 'ABV', prefixes: ['DS-LABEL-080', 'DS-LABEL-081', 'DS-LABEL-082', 'DS-LABEL-083', 'DS-LABEL-084', 'DS-LABEL-085', 'DS-LABEL-086', 'DS-LABEL-087'] },
+  { label: 'Proof', key: 'Proof', prefixes: ['DS-LABEL-088', 'DS-LABEL-089'] },
+  { label: 'Net Contents', key: 'NetContents', prefixes: ['DS-LABEL-07'] },
+  { label: 'Bottler/Producer', key: 'BottlerProducerNameAddr', prefixes: ['DS-LABEL-03', 'DS-LABEL-04'] },
+  { label: 'Origin', key: 'ImportOrigin', prefixes: ['DS-LABEL-05'] },
+  { label: 'Govt Warning Header Present', key: 'GovernmentWarningHeaderText', prefixes: ['DS-LABEL-192'] },
+  { label: 'Govt Warning Present', key: 'GovernmentWarningText', prefixes: ['DS-LABEL-191'] },
+];
 
 function Single() {
   const [file, setFile] = useState(null);
@@ -17,6 +29,15 @@ function Single() {
 
   const fileInputRef = useRef(null);
   const pollInterval = useRef(null);
+
+  const getFieldStatus = (prefixes) => {
+    if (!jobDetails || !jobDetails.output) return 'fail';
+    const failedRules = Object.keys(jobDetails.output.rules_failed || {});
+    for (const rule of failedRules) {
+      if (prefixes.some(p => rule.startsWith(p))) return 'fail';
+    }
+    return 'pass';
+  };
 
 
 
@@ -84,6 +105,24 @@ function Single() {
       if (pollInterval.current) clearInterval(pollInterval.current);
     };
   }, []);
+
+  const getAppValue = (key, appData) => {
+    if (!appData) return null;
+    switch (key) {
+      case 'BrandName': return appData.identity?.brand_name;
+      case 'ClassTypeDesignation': return appData.identity?.class_type_designation;
+      case 'ABV': return appData.alcohol?.abv_percent != null ? `${appData.alcohol.abv_percent}%` : null;
+      case 'Proof': return appData.alcohol?.proof;
+      case 'NetContents': return appData.net_contents?.net_contents_ml != null ? `${appData.net_contents.net_contents_ml} ml` : null;
+      case 'ImportOrigin': return appData.country_of_origin;
+      case 'BottlerProducerNameAddr': 
+        if (appData.responsible_parties && appData.responsible_parties.length > 0) {
+           return appData.responsible_parties.map(rp => rp.name).join(', ');
+        }
+        return null;
+      default: return 'N/A';
+    }
+  };
 
   return (
     <div className="container">
@@ -169,6 +208,37 @@ function Single() {
 
               {jobDetails.output ? (
                 <>
+                  <div className="form-group" style={{ marginTop: '1.5rem' }}>
+                    <h3>Extracted Label Details</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 2fr 80px', gap: '1rem', padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <div style={{ fontWeight: 'bold' }}>Field</div>
+                      <div style={{ fontWeight: 'bold' }}>Extracted Value</div>
+                      <div style={{ fontWeight: 'bold' }}>Application Value</div>
+                      <div style={{ fontWeight: 'bold', textAlign: 'center' }}>Status</div>
+                      {FIELD_MAPPING.map(field => {
+                        const status = getFieldStatus(field.prefixes);
+                        const val = jobDetails.output.llm_extracted_json?.Label?.[field.key];
+                        const appVal = getAppValue(field.key, jobDetails.output.application_data);
+                        return (
+                          <React.Fragment key={field.key}>
+                            <div style={{ alignSelf: 'center' }}>{field.label}</div>
+                            <div style={{ fontFamily: 'monospace', alignSelf: 'center', wordBreak: 'break-word' }}>
+                              {val !== null && val !== undefined ? val.toString() : 'null'}
+                            </div>
+                            <div style={{ fontFamily: 'monospace', alignSelf: 'center', wordBreak: 'break-word', color: 'var(--text-secondary)' }}>
+                              {appVal !== null && appVal !== undefined ? appVal.toString() : 'null'}
+                            </div>
+                            <div style={{ alignSelf: 'center', textAlign: 'center' }}>
+                              <span className={`status-badge status-${status === 'pass' ? 'completed' : 'failed'}`}>
+                                {status}
+                              </span>
+                            </div>
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="form-group" style={{ marginTop: '1.5rem' }}>
                     <h3>Rules Passed</h3>
                     <div className="code-block" style={{ borderColor: '#4caf50' }}>

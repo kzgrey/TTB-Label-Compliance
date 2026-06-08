@@ -104,6 +104,7 @@ class AnalyzeLabelJob(BaseJob):
             "rules_passed": rules_passed,
             "rules_failed": rules_failed,
             "rules_unknown": rules_unknown,
+            "application_data": dataclass_to_dict(result.review_input.application) if 'result' in locals() else None,
         }
 
         # Write final outputs to S3
