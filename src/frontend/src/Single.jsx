@@ -36,12 +36,12 @@ function Single() {
     e.preventDefault();
     setIsDragging(true);
   };
-  
+
   const handleDragLeave = (e) => {
     e.preventDefault();
     setIsDragging(false);
   };
-  
+
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
@@ -91,7 +91,7 @@ function Single() {
     setJobDetails(null);
     setJobId(null);
     setImageUrl(null);
-    
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('use_llm_ocr', useLlmOcr);
@@ -138,7 +138,7 @@ function Single() {
 
       <div className="glass-panel" style={{ marginBottom: '2rem' }}>
         <p style={{ margin: 0 }}>
-          <strong>Instructions:</strong> Upload a label image and optionally paste the COLA application facts below. 
+          <strong>Instructions:</strong> Upload a label image and optionally paste the COLA application facts below.
           The system currently only contains rules for Distilled Spirits, derived from the{' '}
           <a href="https://www.ttb.gov/system/files/images/pdfs/spirits_bam/complete-distilled-spirit-beverage-alcohol-manual.pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-color)' }}>
             BAM for Distilled Spirits
@@ -149,14 +149,14 @@ function Single() {
       <div className="glass-panel">
         <h2>Submit Application</h2>
         <form onSubmit={handleSubmit}>
-          <div 
-            className="form-group" 
-            onDragOver={handleDragOver} 
-            onDragLeave={handleDragLeave} 
+          <div
+            className="form-group"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            style={{ 
-              border: isDragging ? '2px dashed var(--primary-color)' : '2px dashed transparent', 
-              padding: '1rem', 
+            style={{
+              border: isDragging ? '2px dashed var(--primary-color)' : '2px dashed transparent',
+              padding: '1rem',
               borderRadius: '8px',
               transition: 'border 0.2s ease',
               backgroundColor: isDragging ? 'rgba(100, 108, 255, 0.1)' : 'transparent'
@@ -172,10 +172,10 @@ function Single() {
               style={{ width: '100%', boxSizing: 'border-box' }}
               required
             />
-            {file && <p style={{marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--primary-color)'}}>Selected: {file.name}</p>}
+            {file && <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--primary-color)' }}>Selected: {file.name}</p>}
           </div>
           <div className="form-group">
-            <label htmlFor="prompt">Application Information (JSON or Text)</label>
+            <label htmlFor="prompt">Application Information (JSON or Text) - copy/paste directly from COLA</label>
             <textarea
               id="prompt"
               value={prompt}
@@ -210,13 +210,13 @@ function Single() {
       {(loading || jobDetails || imageUrl) && (
         <div className="glass-panel" style={{ marginTop: '2rem' }}>
           <h2>Job Output {jobId ? `(${jobId.substring(0, 8)}...)` : ''}</h2>
-          
+
           {imageUrl && (
             <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-              <img 
-                src={imageUrl} 
-                alt="Uploaded Label" 
-                style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '8px', border: '1px solid var(--border-color)' }} 
+              <img
+                src={imageUrl}
+                alt="Uploaded Label"
+                style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '8px', border: '1px solid var(--border-color)' }}
               />
             </div>
           )}
@@ -303,7 +303,7 @@ function Single() {
                       ))}
                     </ul>
                   </div>
-                  
+
                   <details style={{ marginTop: '2rem', padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                     <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>View Raw JSON Data</summary>
                     <div className="form-group" style={{ marginTop: '1rem' }}>
