@@ -12,3 +12,8 @@ deploy/aws/cdk-outputs.json
 htmlcov/
 venv/
 .venv/
+
+A1.md
+ExampleApplication.txt
+P1.md
+Q1.txt
