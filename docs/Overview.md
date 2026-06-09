@@ -1,5 +1,7 @@
 # Overview
 
+**IMPORTANT:** This system has only been configured to support Distilled Spirits. Please read the [Assumptions and Constraints](AssumptionsAndConstraints.md) document before proceeding.
+
 Welcome to the TTB Label Compliance system documentation.
 
 This project uses a modern, decoupled architecture designed to process label images asynchronously and apply compliance rules.
