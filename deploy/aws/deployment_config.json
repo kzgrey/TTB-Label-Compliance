@@ -18,5 +18,15 @@
     "ecs_api_memory": 4096,
     "ecs_worker_cpu": 4096,
     "ecs_worker_memory": 8192
+  },
+  "prod2": {
+    "vpc_max_azs": 2,
+    "rds_instance_class": "M5",
+    "rds_instance_size": "LARGE",
+    "redis_node_type": "cache.m5.large",
+    "ecs_api_cpu": 2048,
+    "ecs_api_memory": 4096,
+    "ecs_worker_cpu": 4096,
+    "ecs_worker_memory": 8192
   }
 }

@@ -43,10 +43,13 @@ class AnalyzeLabelJob(BaseJob):
             future_warn = executor.submit(self.run_warning_llm, ocr_text)
             future_abv = executor.submit(self.run_abv_llm, ocr_text, app_abv)
             
+            sync_wait_start = time.time()
             norm_result = future_norm.result()
             warn_result = future_warn.result()
             abv_result = future_abv.result()
+            synchronous_wait_time_sec = time.time() - sync_wait_start
 
+        post_process_start = time.time()
         llm_json = norm_result.get("json", {})
         label_dict = llm_json.get("Label", {})
         
@@ -80,6 +83,8 @@ class AnalyzeLabelJob(BaseJob):
             rules_failed = {}
             rules_unknown = {}
 
+        post_processing_sec = time.time() - post_process_start
+
         final_output = {
             "ocr_output": ocr_text,
             "ocr_duration_sec": ocr_duration,
@@ -89,6 +94,8 @@ class AnalyzeLabelJob(BaseJob):
             "warning_llm_duration_sec": warn_result.get("duration_sec", 0.0),
             "abv_llm_duration_sec": abv_result.get("duration_sec", 0.0),
             "application_llm_duration_sec": app_result.get("duration_sec", 0.0),
+            "synchronous_wait_time_sec": synchronous_wait_time_sec,
+            "post_processing_sec": post_processing_sec,
             "total_duration_sec": total_duration,
             "rules_passed": rules_passed,
             "rules_failed": rules_failed,
