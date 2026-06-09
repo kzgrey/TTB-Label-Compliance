@@ -14,3 +14,4 @@ This project uses a modern, decoupled architecture designed to process label ima
 - [Engineering Trade-offs](EngineeringTradeoffs.md): Details the lower-level tech stack rationale, defending choices like FastAPI vs. Django, Celery vs. SQS, and Tesseract vs. Cloud Vision APIs.
 - [Reviewer's Guide & Test Cases](ReviewersGuide.md): A guide for evaluating the prototype, outlining expected system behaviors across clean passes, semantic equivalences, hard failures, and distorted images.
 - [Enterprise Deployment & Security](EnterpriseDeploymentAndSecurity.md): Outlines the operational roadmap for moving to production, covering FedRAMP security requirements (encryption, secrets management), CI/CD operations, and COLA API integration strategies.
+- [Next Steps Roadmap](Roadmap.md): Outlines the strategic roadmap for evolving the prototype into a production-ready system, covering UX, batch processing, COLA integration, and ML modeling.
