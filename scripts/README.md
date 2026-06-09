@@ -10,6 +10,15 @@ This directory contains utility scripts to automate local development, testing, 
 
 ## Cloud Deployment (AWS CDK)
 
+Before running the deployment scripts, ensure your local machine meets the following prerequisites:
+1. **AWS CLI**: Installed, configured, and authenticated with active credentials (`aws configure`).
+2. **OpenAI API Key**: The deployment script reads this from your local shell and injects it into the ECS task definitions. You MUST export it before deploying:
+   `export OPENAI_API_KEY="sk-..."`
+3. **AWS CDK**: Must be bootstrapped in your target AWS account/region (`cdk bootstrap`).
+4. **Node.js & npm**: Required to build the React frontend and install the AWS CDK toolkit.
+5. **Python 3 & pip**: Required for synthesizing the AWS CDK infrastructure.
+6. **Docker**: Must be running locally. The CDK deployment process builds the backend Docker images automatically before pushing them to Amazon ECR.
+
 *   **`deploy.zsh`**: Synthesizes and deploys the AWS CDK stack to the cloud.
 *   **`undeploy.zsh`**: Tears down and destroys the deployed AWS CDK stack.
 *   **`start.zsh`**: Starts the AWS ECS API and Worker services by scaling their desired task count up to 1. Usage: `./start.zsh <env_name>`

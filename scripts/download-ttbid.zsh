@@ -13,7 +13,7 @@ if [ -z "$1" ]; then
 fi
 
 TTBID=$1
-DATA_DIR="$REPO_ROOT/data/$TTBID"
+DATA_DIR="$REPO_ROOT/data/real/$TTBID"
 
 # Make sure data and target directory exists
 mkdir -p "$DATA_DIR"

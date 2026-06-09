@@ -13,13 +13,16 @@ if not logger.handlers:
     logger.addHandler(handler)
 
 def get_s3_client():
-    return boto3.client(
-        's3',
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name=settings.AWS_DEFAULT_REGION,
-        config=Config(signature_version='s3v4')
-    )
+    kwargs = {
+        'region_name': settings.AWS_DEFAULT_REGION,
+        'config': Config(signature_version='s3v4')
+    }
+    
+    if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
+        kwargs['aws_access_key_id'] = settings.AWS_ACCESS_KEY_ID
+        kwargs['aws_secret_access_key'] = settings.AWS_SECRET_ACCESS_KEY
+        
+    return boto3.client('s3', **kwargs)
 
 def _get_bucket_and_prefix():
     parts = settings.S3_BUCKET_PATH.strip('/').split('/', 1)
