@@ -113,7 +113,7 @@ STATE_OF_DISTILLATION_WHISKY_TYPES = frozenset(
 )
 
 
-@dataclass(slots=True)
+@dataclass
 class Check:
     """Optional precomputed assertion from OCR/extraction or validator."""
 
@@ -140,7 +140,7 @@ class Check:
         return cls(state=state, confidence=confidence, reason=reason, rule_ids=rule_ids or [])
 
 
-@dataclass(slots=True)
+@dataclass
 class ExtractedText:
     """Raw text plus normalized value and model confidence for one label field."""
 
@@ -155,7 +155,7 @@ class ExtractedText:
         return bool(self.text and self.text.strip())
 
 
-@dataclass(slots=True)
+@dataclass
 class Address:
     company_name: str | None = None
     trade_name: str | None = None
@@ -166,7 +166,7 @@ class Address:
     country: str | None = None
 
 
-@dataclass(slots=True)
+@dataclass
 class ResponsiblePartyApplication:
     role: ResponsiblePartyRole
     name: str
@@ -177,7 +177,7 @@ class ResponsiblePartyApplication:
     actual_operation_address_marked_on_label_or_container: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass
 class WineAdditionFacts:
     """Facts needed for flavored spirits with added wine."""
 
@@ -186,7 +186,7 @@ class WineAdditionFacts:
     percent_of_wine_from_base_commodity: float | None = None
 
 
-@dataclass(slots=True)
+@dataclass
 class ComponentPercentage:
     name: str
     percent: float | None = None
@@ -194,7 +194,7 @@ class ComponentPercentage:
     proof_gallon_basis: bool = True
 
 
-@dataclass(slots=True)
+@dataclass
 class ProductIdentityApplication:
     brand_name: str | None = None
     not_sold_under_brand_name: bool = False
@@ -244,7 +244,7 @@ class ProductIdentityApplication:
     domestic_and_imported_whisky_components: list[ComponentPercentage] = field(default_factory=list)
 
 
-@dataclass(slots=True)
+@dataclass
 class AlcoholApplication:
     abv_percent: float | None = None
     proof: float | None = None
@@ -263,7 +263,7 @@ class AlcoholApplication:
         return 0.15
 
 
-@dataclass(slots=True)
+@dataclass
 class NetContentsApplication:
     net_contents_ml: int | None = None
     container_kind: ContainerKind = ContainerKind.NON_CAN
@@ -276,7 +276,7 @@ class NetContentsApplication:
         return self.net_contents_ml in allowed
 
 
-@dataclass(slots=True)
+@dataclass
 class DisclosureApplication:
     contains_coloring_materials: bool = False
     coloring_materials: list[str] = field(default_factory=list)
@@ -298,7 +298,7 @@ class DisclosureApplication:
         return self.sulfur_dioxide_ppm >= 10
 
 
-@dataclass(slots=True)
+@dataclass()
 class CommodityStatementApplication:
     group: CommodityStatementGroup = CommodityStatementGroup.NONE
     neutral_spirits_percent: float | None = None
@@ -306,7 +306,7 @@ class CommodityStatementApplication:
     neutral_spirit_distillation_method: NeutralSpiritDistillationMethod = NeutralSpiritDistillationMethod.NOT_APPLICABLE
 
 
-@dataclass(slots=True)
+@dataclass()
 class AgeComponentApplication:
     class_type: str
     percent_proof_gallon_basis: float | None = None
@@ -315,7 +315,7 @@ class AgeComponentApplication:
     is_neutral_spirit: bool = False
 
 
-@dataclass(slots=True)
+@dataclass()
 class AgeApplication:
     actual_age_months: int | None = None
     youngest_component_age_months: int | None = None
@@ -346,7 +346,7 @@ class AgeApplication:
         return False
 
 
-@dataclass(slots=True)
+@dataclass()
 class StateOfDistillationApplication:
     produced_in_united_states: bool = False
     whisky_type: str | None = None
@@ -367,14 +367,14 @@ class StateOfDistillationApplication:
         )
 
 
-@dataclass(slots=True)
+@dataclass()
 class SaleApplication:
     for_sale_or_distribution_in_us: bool = True
     intended_for_human_consumption: bool = True
     bottled_on_or_after_1989_11_18: bool = True
 
 
-@dataclass(slots=True)
+@dataclass()
 class DistilledSpiritsApplication:
     """Application/COLA facts the label must match."""
 
@@ -402,7 +402,7 @@ class DistilledSpiritsApplication:
         )
 
 
-@dataclass(slots=True)
+@dataclass()
 class BrandNameLabel:
     value: ExtractedText = field(default_factory=ExtractedText)
     matches_application_brand_name: bool | None = None
@@ -413,7 +413,7 @@ class BrandNameLabel:
     qualified_with_brand_word: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class ClassTypeDesignationLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     declared_class: str | None = None
@@ -437,7 +437,7 @@ class ClassTypeDesignationLabel:
     required_origin_for_class_type_satisfied: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class AlcoholContentLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     abv_percent: float | None = None
@@ -448,7 +448,7 @@ class AlcoholContentLabel:
     proof_is_distinguished_from_abv_statement: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class NetContentsLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     net_contents_ml: int | None = None
@@ -456,7 +456,7 @@ class NetContentsLabel:
     is_metric_standard_of_fill: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class ResponsiblePartyLabelStatement:
     statement: ExtractedText = field(default_factory=ExtractedText)
     role_phrase: str | None = None
@@ -471,7 +471,7 @@ class ResponsiblePartyLabelStatement:
     actual_operation_address_code_present_when_required: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class CountryOfOriginLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     country: str | None = None
@@ -479,7 +479,7 @@ class CountryOfOriginLabel:
     accepted_format: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class ColoringDisclosureLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     disclosed_materials: list[str] = field(default_factory=list)
@@ -488,7 +488,7 @@ class ColoringDisclosureLabel:
     class_type_reflects_materials_when_materials_change_class_type: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class WoodTreatmentDisclosureLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     wood_form: str | None = None
@@ -496,19 +496,19 @@ class WoodTreatmentDisclosureLabel:
     exception_applies: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class FdcYellow5DisclosureLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     contains_required_phrase: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class SaccharinDisclosureLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     exact_required_text_present: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class SulfiteDeclarationLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     contains_sulfites_phrase_present: bool | None = None
@@ -516,7 +516,7 @@ class SulfiteDeclarationLabel:
     specific_sulfiting_agents_declared: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class CommodityStatementLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     detected_group: CommodityStatementGroup | None = None
@@ -528,7 +528,7 @@ class CommodityStatementLabel:
     matches_application_neutral_spirits_percent: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class AgeStatementComponentLabel:
     class_type: str | None = None
     percent_proof_gallon_basis: float | None = None
@@ -536,7 +536,7 @@ class AgeStatementComponentLabel:
     raw_text: str | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class AgeStatementLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     stated_age_months: int | None = None
@@ -549,7 +549,7 @@ class AgeStatementLabel:
     required_age_statement_present: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class StateOfDistillationLabel:
     statement: ExtractedText = field(default_factory=ExtractedText)
     state: str | None = None
@@ -557,7 +557,7 @@ class StateOfDistillationLabel:
     matches_application_state: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class GovernmentWarningLabel:
     full_text: ExtractedText = field(default_factory=ExtractedText)
     header_text: ExtractedText = field(default_factory=ExtractedText)
@@ -573,7 +573,7 @@ class GovernmentWarningLabel:
     government_warning_compliant: bool | None = None
 
 
-@dataclass(slots=True)
+@dataclass()
 class DistilledSpiritsLabelExtraction:
     """All required or conditionally required distilled-spirits label fields."""
 
@@ -607,7 +607,7 @@ class DistilledSpiritsLabelExtraction:
     extra_extracted_facts: dict[str, Any] = field(default_factory=dict)
 
 
-@dataclass(slots=True)
+@dataclass()
 class DistilledSpiritsLabelReviewInput:
     """Top-level object passed into the validator."""
 

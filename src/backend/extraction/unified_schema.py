@@ -18,6 +18,7 @@ class LabelData(BaseModel):
     RuleSpecificFact: Optional[str] = None
     PercentageAndName: Optional[str] = None
     ContainerEmbossedText: Optional[str] = None
-    GovernmentWarningText: Optional[str] = None
-    GovernmentWarningHeaderText: Optional[str] = None
+    IsGovernmentWarningTextCorrectLLM: Optional[bool] = None
+    IsGovernmentWarningHeaderCorrectLLM: Optional[bool] = None
+    IsABVCorrectLLM: Optional[bool] = None
     ContainerOrLabelCoding: Optional[str] = None

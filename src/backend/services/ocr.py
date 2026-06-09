@@ -11,7 +11,16 @@ def process_image_with_tesseract(file_bytes: bytes) -> dict:
     start_time = time.time()
     
     image = Image.open(io.BytesIO(file_bytes))
-    text = pytesseract.image_to_string(image)
+    
+    # Pre-process image to grayscale for better OCR contrast
+    image = image.convert('L')
+    
+    # Fix OpenMP thread thrashing which causes junk output in concurrent environments
+    import os
+    os.environ["OMP_THREAD_LIMIT"] = "1"
+    
+    # Use PSM 11 (Sparse text) which is much better for scattered label text
+    text = pytesseract.image_to_string(image, config='--psm 11')
     
     end_time = time.time()
     duration_sec = end_time - start_time

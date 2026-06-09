@@ -78,11 +78,9 @@ def evaluate_rules(label: Optional[LabelData], app: Optional[LabelData]) -> Dict
         b.pass_("DS-LABEL-010", f"Class/Type '{label.ClassTypeDesignation}' matches application.")
 
     # ABV DS-LABEL-020
-    l_abv = normalize(label.ABV)
-    a_abv = normalize(app.ABV)
-    if not l_abv:
-        b.fail("DS-LABEL-020", "No ABV found on the label.")
-    elif a_abv and l_abv != a_abv:
+    if label.IsABVCorrectLLM is None:
+        b.fail("DS-LABEL-020", "Missing ABV LLM analysis.")
+    elif not label.IsABVCorrectLLM:
         b.fail("DS-LABEL-020", f"ABV '{label.ABV}' does not match application '{app.ABV}'.")
     else:
         b.pass_("DS-LABEL-020", f"ABV '{label.ABV}' matches application.")
@@ -126,21 +124,18 @@ def evaluate_rules(label: Optional[LabelData], app: Optional[LabelData]) -> Dict
         b.pass_("DS-LABEL-060", f"Proof '{label.Proof}' matches application.")
 
     # GovernmentWarningHeaderText DS-LABEL-191
-    gov_header = label.GovernmentWarningHeaderText
-    if gov_header is None:
-        b.fail("DS-LABEL-191", "Missing government warning header.", hard_failure=True)
-    elif gov_header.strip() != "GOVERNMENT WARNING:":
-        b.fail("DS-LABEL-191", f"Government warning header must be exactly 'GOVERNMENT WARNING:', got '{gov_header}'.", hard_failure=True)
+    if label.IsGovernmentWarningHeaderCorrectLLM is None:
+        b.fail("DS-LABEL-191", "Missing government warning header analysis.", hard_failure=True)
+    elif not label.IsGovernmentWarningHeaderCorrectLLM:
+        b.fail("DS-LABEL-191", "Government warning header is missing or incorrect.", hard_failure=True)
     else:
         b.pass_("DS-LABEL-191", "Government warning header is exactly 'GOVERNMENT WARNING:'.")
 
     # GovernmentWarningText DS-LABEL-192
-    gov_text = normalize(label.GovernmentWarningText)
-    req_text = normalize(GOVERNMENT_WARNING_FULL_TEXT)
-    if not gov_text:
-        b.fail("DS-LABEL-192", "Missing government warning.", hard_failure=True)
-    elif req_text not in gov_text:
-        b.fail("DS-LABEL-192", f"Government warning text does not match required text. Got: '{label.GovernmentWarningText}'", hard_failure=True)
+    if label.IsGovernmentWarningTextCorrectLLM is None:
+        b.fail("DS-LABEL-192", "Missing government warning analysis.", hard_failure=True)
+    elif not label.IsGovernmentWarningTextCorrectLLM:
+        b.fail("DS-LABEL-192", "Government warning text does not match required text.", hard_failure=True)
     else:
         b.pass_("DS-LABEL-192", "Government warning text is exactly correct.")
 
@@ -152,3 +147,12 @@ def evaluate_rules(label: Optional[LabelData], app: Optional[LabelData]) -> Dict
         "failed": to_dict(b.result.failed),
         "unknown": to_dict(b.result.unknown)
     }
+
+class LegacyRuleResults:
+    def __init__(self):
+        self.rule_passes = {}
+        self.rule_fails = {}
+        self.rule_unknown = {}
+
+def build_rule_result_dicts(review: Any) -> LegacyRuleResults:
+    return LegacyRuleResults()

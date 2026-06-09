@@ -260,8 +260,6 @@ Output exactly:
     "RuleSpecificFact": null,
     "PercentageAndName": null,
     "ContainerEmbossedText": null,
-    "GovernmentWarningText": null,
-    "GovernmentWarningHeaderText": null,
     "ContainerOrLabelCoding": null
   },
   "Sources": {
@@ -279,8 +277,6 @@ Output exactly:
     "RuleSpecificFact": [],
     "PercentageAndName": [],
     "ContainerEmbossedText": [],
-    "GovernmentWarningText": [],
-    "GovernmentWarningHeaderText": [],
     "ContainerOrLabelCoding": []
   }
 }
@@ -307,15 +303,12 @@ Field meanings:
 - RuleSpecificFact: relevant label text that fits no other field.
 - PercentageAndName: percentage/name listing for blended components.
 - ContainerEmbossedText: embossed, blown, branded, molded, etched, or container-formed text.
-- GovernmentWarningText: complete government warning statement.
-- GovernmentWarningHeaderText: exact text of the government warning header (e.g. 'GOVERNMENT WARNING:').
 - ContainerOrLabelCoding: printed/stamped/coded lot, batch, date, or production marking.
 
 Selection rules:
 - Prefer the most complete explicit statement.
 - If one text span fits multiple fields, use the most specific field.
-- Keep ABV and Proof separate unless the source text explicitly combines them.
-- Do not put GovernmentWarningText in RuleSpecificFact."""
+- Keep ABV and Proof separate unless the source text explicitly combines them."""
 
 EXTRACT_APPLICATION_PROMPT = """Extract facts from the pasted TTB COLA application text into JSON.
 
@@ -323,7 +316,6 @@ Rules:
 - Copy text exactly from the input when possible.
 - Do not infer, rewrite, normalize units, translate, or summarize unless necessary to match the structure.
 - If no source text supports a field, use null.
-- GovernmentWarningText and GovernmentWarningHeaderText should always be null for application text.
 - Return JSON only matching this exact schema.
 
 Output exactly:
@@ -343,14 +335,12 @@ Output exactly:
   "RuleSpecificFact": null,
   "PercentageAndName": null,
   "ContainerEmbossedText": null,
-  "GovernmentWarningText": null,
-  "GovernmentWarningHeaderText": null,
   "ContainerOrLabelCoding": null
 }
 
 Field meanings:
 - BrandName: brand name.
-- ClassTypeDesignation: Distilled Spirits, Beer, Wine, Other, or specific class/type code.
+- ClassTypeDesignation: The "TYPE OF PRODUCT (Required)" (e.g. WINE, DISTILLED SPIRITS, or MALT BEVERAGE).
 - ABV: alcohol-content statement (e.g. 40%).
 - NetContents: net-contents statement (e.g. 750 mL).
 - BottlerProducerNameAddr: bottler, producer, brewer, distiller, importer, or responsible party name/address.
@@ -363,7 +353,35 @@ Field meanings:
 - RuleSpecificFact: relevant label text that fits no other field.
 - PercentageAndName: percentage/name listing for blended components.
 - ContainerEmbossedText: embossed, blown, branded, molded, etched, or container-formed text.
-- GovernmentWarningText: null.
-- GovernmentWarningHeaderText: null.
 - ContainerOrLabelCoding: printed/stamped/coded lot, batch, date, or production marking.
+"""
+
+GOVERNMENT_WARNING_CHECK_PROMPT = """You are a compliance checker.
+Review the provided OCR text from a beverage label and determine if the required Government Warning is present and exactly correct.
+
+IMPORTANT INSTRUCTION: The warning text might span multiple OCR text blocks, appear out of order, or have line breaks in the middle of words. You must piece together the fragments from the OCR text to evaluate if the complete warning is present. Ignore any endlines (newlines) and white space differences when making your determination. Tolerate minor OCR errors or typos (e.g. "aPllly" instead of "ability") as long as it is clear that the text matches the required warning. Do NOT fail the check due to minor OCR artifacts.
+
+Expected Header (exact capitalization required):
+GOVERNMENT WARNING:
+
+Expected Warning Text:
+(1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.
+
+Output exactly this JSON:
+{
+  "IsGovernmentWarningHeaderCorrectLLM": bool,
+  "IsGovernmentWarningTextCorrectLLM": bool
+}
+"""
+
+ABV_EQUIVALENCE_PROMPT = """You are a compliance checker.
+Review the provided OCR text from a beverage label and the provided Alcohol by Volume (ABV) value extracted from the COLA application.
+Determine if the numeric percentage value of the ABV on the label matches the application ABV value.
+
+IMPORTANT INSTRUCTION: Equivalence means that the numeric percentage value matches, irrespective of the formatting or wording. For example, "40% Alc/Vol" on the label is equivalent to "40%" in the application.
+
+Output exactly this JSON:
+{
+  "IsABVCorrectLLM": bool
+}
 """

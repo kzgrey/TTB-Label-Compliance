@@ -9,6 +9,9 @@ function Bulk() {
       </header>
       <div className="glass-panel">
         <p>This view is under construction.</p>
+        <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>
+          While bulk handling is not yet implemented in the UI, the backend system fully supports asynchronous execution of many concurrent jobs via the Celery task queue.
+        </p>
       </div>
     </div>
   );

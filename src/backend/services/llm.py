@@ -45,9 +45,9 @@ class VisionLLMProvider(abc.ABC):
         pass
 
 class OpenAIVisionLLM(VisionLLMProvider):
-    def __init__(self):
+    def __init__(self, model_name: str = "gpt-5.4-mini"):
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = "gpt-5.4-mini"
+        self.model = model_name
 
     @timing_decorator
     def execute_prompt(self, prompt: str, image_bytes: bytes) -> Dict[str, Any]:
@@ -124,5 +124,5 @@ class OpenAIVisionLLM(VisionLLMProvider):
         }
 
 # Factory or singleton
-def get_llm_provider() -> VisionLLMProvider:
-    return OpenAIVisionLLM()
+def get_llm_provider(model_name: str = "gpt-5.4-mini") -> VisionLLMProvider:
+    return OpenAIVisionLLM(model_name=model_name)

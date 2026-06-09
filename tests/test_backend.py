@@ -42,6 +42,7 @@ def test_analyze_label_job_mocked():
         
         mock_provider = MagicMock()
         mock_provider.execute_prompt.return_value = {"text": "LLM Mock Output", "duration_sec": 2.3}
+        mock_provider.execute_json_prompt.return_value = {"text": "LLM Mock Output", "json": {}, "duration_sec": 2.3}
         mock_llm_provider.return_value = mock_provider
         
         mock_db = MagicMock()
@@ -60,7 +61,6 @@ def test_analyze_label_job_mocked():
             assert result["ocr_output"] == "OCR Mock Output"
             assert result["llm_output"] == "LLM Mock Output"
             assert result["ocr_duration_sec"] == 1.2
-            assert result["llm_duration_sec"] == 2.3
             assert "total_duration_sec" in result
             
             # Verify S3 upload calls

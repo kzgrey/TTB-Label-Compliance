@@ -9,12 +9,13 @@ const FIELD_MAPPING = [
   { label: 'Brand', key: 'BrandName', prefixes: ['DS-LABEL-001'] },
   { label: 'Class', key: 'ClassTypeDesignation', prefixes: ['DS-LABEL-010'] },
   { label: 'ABV', key: 'ABV', prefixes: ['DS-LABEL-020'] },
+  { label: 'ABV Matches Application', key: 'IsABVCorrectLLM', prefixes: ['DS-LABEL-020'] },
   { label: 'Net Contents', key: 'NetContents', prefixes: ['DS-LABEL-030'] },
   { label: 'Bottler/Producer', key: 'BottlerProducerNameAddr', prefixes: ['DS-LABEL-040'] },
   { label: 'Origin', key: 'ImportOrigin', prefixes: ['DS-LABEL-050'] },
   { label: 'Proof', key: 'Proof', prefixes: ['DS-LABEL-060'] },
-  { label: 'Govt Warning Header Present', key: 'GovernmentWarningHeaderText', prefixes: ['DS-LABEL-191'] },
-  { label: 'Govt Warning Present', key: 'GovernmentWarningText', prefixes: ['DS-LABEL-192'] },
+  { label: 'Govt Warning Header Present', key: 'IsGovernmentWarningHeaderCorrectLLM', prefixes: ['DS-LABEL-191'] },
+  { label: 'Govt Warning Present', key: 'IsGovernmentWarningTextCorrectLLM', prefixes: ['DS-LABEL-192'] },
 ];
 
 function Single() {
@@ -232,7 +233,17 @@ function Single() {
                 {jobDetails.job.status}
               </div>
               {jobDetails.job.total_duration_sec && (
-                <p className="job-meta">Total Duration: {jobDetails.job.total_duration_sec.toFixed(2)}s</p>
+                <div className="job-meta">
+                  <p>Total Duration: {jobDetails.job.total_duration_sec.toFixed(2)}s</p>
+                  {jobDetails.output?.normalization_llm_duration_sec && (
+                    <ul style={{ margin: '0.5rem 0', paddingLeft: '20px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      <li>Norm LLM: {jobDetails.output.normalization_llm_duration_sec.toFixed(2)}s</li>
+                      <li>Warning LLM: {jobDetails.output.warning_llm_duration_sec.toFixed(2)}s</li>
+                      <li>ABV LLM: {jobDetails.output.abv_llm_duration_sec.toFixed(2)}s</li>
+                      <li>App LLM: {jobDetails.output.application_llm_duration_sec.toFixed(2)}s</li>
+                    </ul>
+                  )}
+                </div>
               )}
 
               {jobDetails.output ? (
