@@ -88,8 +88,9 @@ async def submit_job(
     redis_client.setex(f"image:{job.id}", 3600, file_bytes)
     file_key = upload_job_input(str(job.id), file_bytes, "image.png")
 
-    # Save prompt to S3 for history
+    # Save prompt to S3 for history and cache in Redis
     upload_job_prompt(job.id, prompt)
+    redis_client.setex(f"prompt:{job.id}", 3600, prompt)
 
     # Submit Celery Task
     execute_job_task.delay("AnalyzeLabelJob", job.id, file_key=file_key, prompt=prompt, use_llm_ocr=use_llm_ocr)
@@ -101,11 +102,30 @@ def get_job_details(job_id: str, db: Session = Depends(get_db)):
     """
     Returns the job details including S3 data (LLM/OCR outputs and prompt).
     """
+    import json
+    
+    # 1. First check if the output key exists in Redis
+    cached_output = redis_client.get(f"output:{job_id}")
+    cached_prompt = redis_client.get(f"prompt:{job_id}")
+    
+    output = json.loads(cached_output.decode('utf-8')) if cached_output else None
+    prompt = cached_prompt.decode('utf-8') if cached_prompt else None
+
+    # 2. Hit the database to get job metadata
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-        
-    data = get_job_data(job_id)
+
+    # 3. Backup logic: If details do not exist in Redis, but job is completed, fetch from S3 and cache
+    if not output and job.status in ["completed", "failed"]:
+        data = get_job_data(job_id)
+        if not prompt and data.get("prompt"):
+            prompt = data["prompt"]
+            redis_client.setex(f"prompt:{job_id}", 3600, prompt)
+        if not output and data.get("output"):
+            output = data["output"]
+            redis_client.setex(f"output:{job_id}", 3600, json.dumps(output))
+
     return {
         "job": {
             "id": job.id,
@@ -116,8 +136,8 @@ def get_job_details(job_id: str, db: Session = Depends(get_db)):
             "llm_duration_sec": job.llm_duration_sec,
             "total_duration_sec": job.total_duration_sec
         },
-        "prompt": data.get("prompt"),
-        "output": data.get("output")
+        "prompt": prompt,
+        "output": output
     }
 
 @app.get("/jobs/{job_id}/image")

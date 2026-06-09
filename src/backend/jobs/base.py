@@ -4,6 +4,8 @@ import json
 from src.backend.services.s3 import get_s3_client, _get_bucket_and_prefix
 from src.backend.database import SessionLocal
 from src.backend.models import Job
+from src.backend.config import settings
+import redis
 
 class BaseJob:
     """
@@ -73,7 +75,13 @@ class BaseJob:
             
             # Framework automatically saves the returned dict as output.json
             if isinstance(result, dict):
-                self.upload_file("output.json", json.dumps(result).encode('utf-8'))
+                output_json = json.dumps(result)
+                self.upload_file("output.json", output_json.encode('utf-8'))
+                try:
+                    r = redis.Redis.from_url(settings.REDIS_URL)
+                    r.setex(f"output:{self.job_id}", 3600, output_json)
+                except Exception as redis_e:
+                    self.logger.warning(f"Failed to cache output in Redis: {redis_e}")
                 
             db = SessionLocal()
             job = db.query(Job).filter(Job.id == self.job_id).first()
