@@ -31,10 +31,10 @@ Provisioning dedicated GPU instances (e.g., on Azure) to run open-source Vision/
 ## 3. Gaps, Risks, and Future Considerations
 
 1. **Visual Formatting Validation:**
-   The requirement states that the Government Warning must be in all caps and bold. While the LLM and OCR pipeline correctly verifies the exact text and capitalization, verifying visual layout (like bold font weight or specific contrast against the background) remains a highly complex computer vision problem that text-based LLMs cannot solve reliably. This remains a "best-effort" feature.
+   The requirement states that the Government Warning must be in all caps and bold. While the LLM and OCR pipeline correctly verifies the exact text and capitalization, verifying visual layout (like bold font weight, text positioning, or specific contrast) is treated as a **best-effort** feature. Text-based LLMs cannot solve this reliably. To fully support visual layout checks, necessary remediations include implementing enhanced OCR that outputs layout metadata (bounding boxes) or utilizing a dedicated computer-vision model trained specifically on TTB layout rules.
    
 2. **Imperfect Real-World Images:**
-   The prototype performs well on flat, digital artwork (PDF/PNG). However, photos of physical bottles with glare, curvature, or poor lighting will severely degrade the initial Tesseract OCR pass. If the OCR layer fails to extract the text, the LLM cannot evaluate it. Future iterations may require pre-processing pipelines (deskewing, contrast normalization) or relying purely on multimodal Vision LLMs rather than intermediate OCR.
+   While the prototype expects clean, readable flat digital artwork (PDF/PNG), photographed bottle labels—which introduce glare, curvature, perspective distortion, and poor lighting—are processed on a **best-effort** basis. To handle these inputs reliably, necessary remediations would involve adding an advanced image pre-processing pipeline to perform perspective correction (deskewing), label segmentation, bottle detection, and glare removal before the OCR pass.
 
 3. **Low-Confidence Failsafes:**
    As stated in the constraints, the system should never automatically pass an application if extraction confidence is low. While the LLM is instructed to flag missing or ambiguous data as `Unknown` or `Failed`, hallucinations remain a minor risk. The system correctly requires the agent to remain "in the loop" for the final sign-off.
