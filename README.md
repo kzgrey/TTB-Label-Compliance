@@ -1,6 +1,6 @@
 # TTB Label Compliance Prototype
 
-**Live Deployment:** [http://ttblabelcompliancestack-p-frontendbucketproddf58a3-3n3htcupdd4f.s3-website-us-east-1.amazonaws.com](http://ttblabelcompliancestack-p-frontendbucketproddf58a3-3n3htcupdd4f.s3-website-us-east-1.amazonaws.com)
+**Live Deployment: OFFLINE**
 
 Welcome to the TTB Label Compliance prototype. This system automates the verification of alcohol label applications using AI.
 
